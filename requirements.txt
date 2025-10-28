@@ -1,0 +1,8 @@
+python-dotenv
+scikit-learn
+pandas
+numpy
+dill
+pyam
+-e .
+
