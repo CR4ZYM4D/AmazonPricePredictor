@@ -20,9 +20,9 @@ setup(
     name = "Amazon Item Price Predictor",
     version = "1.0.0",
     author = "Madhav",
-    autho_email = "devmadhav0207@gmail.com",
+    author_email = "devmadhav0207@gmail.com",
     packages=find_packages(),
-    requires=get_requirements()
+    install_requires=get_requirements()
 )
 
     

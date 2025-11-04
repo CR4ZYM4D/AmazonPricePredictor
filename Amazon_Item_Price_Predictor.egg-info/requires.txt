@@ -5,6 +5,3 @@ numpy
 dill
 pyam
 pymongo
-
--e .
-
