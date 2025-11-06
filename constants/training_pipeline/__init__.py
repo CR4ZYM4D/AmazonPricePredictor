@@ -11,6 +11,8 @@ DB_NAME = 'AmazonPricePredictor'
 INGESTION_DIR_NAME = 'data_ingestion'
 PIPELINE_NAME = 'PricePrediction'
 INGESTED_DIR_NAME = 'ingested_data'
+FEATURE_STORE = 'features'
+
 
 """ Common constants to be used throughout the project"""
 

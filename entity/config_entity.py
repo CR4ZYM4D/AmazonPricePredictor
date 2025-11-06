@@ -15,6 +15,7 @@ class TrainingPipelineConfig():
         
         self.training_pipeline = train_p.PIPELINE_NAME
         self.artifact_name = train_p.ARTIFACT_DIR
+        self.feature_store = train_p.FEATURE_STORE
         self.artifact_dir = os.path.join(self.artifact_name, timestamp)
         self.timestamp = timestamp
         return
@@ -33,9 +34,11 @@ class IngestionConfig():
         self.tpo = training_pipeline_object
 
         self.ingestion_dir = os.path.join(self.tpo.artifact_dir, train_p.INGESTION_DIR_NAME)
-        
-        self.training_file_path = os.path.join(self.ingestion_dir, train_p.TRAIN_FILE_NAME)
-        self.testing_file_path = os.path.join(self.ingestion_dir, train_p.TEST_FILE_NAME)
+        self.ingested_dir = os.path.join(self.ingestion_dir, train_p.INGESTED_DIR_NAME)
+
+        self.feature_store = os.path.join(self.ingestion_dir, train_p.FEATURE_STORE)
+        self.training_file_path = os.path.join(self.feature_store, train_p.TRAIN_FILE_NAME)
+        self.testing_file_path = os.path.join(self.feature_store, train_p.TEST_FILE_NAME)
 
         self.split_ratio = train_p.SPLIT_RATIO
         self.collection_name = train_p.COLLECTION_NAME
