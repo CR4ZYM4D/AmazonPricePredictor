@@ -36,6 +36,40 @@ class IngestionComponent():
         except ProjectError as e:
             raise(e)
         
+    def export_collection_as_df(self):
+
+        """
+            Function to connect to the Database using MongoClient and get the required collection 
+            params -> None
+            returns -> Collection stated in config class converted into a Dataframe
+        """
+
+        try:
+            
+            # get DB and collection name from config
+            db_name = self.config.db_name
+            collection_name = self.config.collection_name
+
+            # connect to DB using DB URL
+            self.mongo_client = pymongo.MongoClient(MONGO_DB_URL)
+
+            # get collection from DB
+            collection = self.mongo_client[db_name][collection_name]
+
+            # conver into pandas DF
+            df = pd.DataFrame(list(collection.find()))
+
+            # remove _id column if made by default
+            if '_id' in df.columns.to_list():
+                df.drop(labels = "_id", axis = 1, inplace = True)
+            
+            # replace null values
+            df.replace({'na': np.nan}, inplace = True)
+            return df
+
+        except ProjectError as e:
+            raise(e)
+        
     def initiate_ingestion(self):
 
         """
@@ -72,16 +106,5 @@ class IngestionComponent():
 
             return IngestionArtifact(self.config.training_file_path, self.config.testing_file_path)
 
-        except ProjectError as e:
-            raise(e)
-        
-    def export_collection_as_df(self):
-
-        """
-
-        """
-
-        try:
-            pass
         except ProjectError as e:
             raise(e)
