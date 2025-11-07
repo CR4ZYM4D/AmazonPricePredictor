@@ -39,8 +39,8 @@ class IngestionComponent():
     def export_collection_as_df(self):
 
         """
-            Function to connect to the Database using MongoClient and get the required collection 
-            params -> None
+            Function to connect to the Database using MongoClient and get the required collection\n 
+            params -> None\n
             returns -> Collection stated in config class converted into a Dataframe
         """
 
@@ -51,12 +51,14 @@ class IngestionComponent():
             collection_name = self.config.collection_name
 
             # connect to DB using DB URL
+            logging.info(f"Attempting connecting to Database {db_name} and extracting collection {collection_name}")
             self.mongo_client = pymongo.MongoClient(MONGO_DB_URL)
 
             # get collection from DB
             collection = self.mongo_client[db_name][collection_name]
 
-            # conver into pandas DF
+            # convert into pandas DF
+            logging.info("Connection successful. Extracting collection and converting to dataframe")
             df = pd.DataFrame(list(collection.find()))
 
             # remove _id column if made by default
@@ -70,12 +72,75 @@ class IngestionComponent():
         except ProjectError as e:
             raise(e)
         
+    def export_to_ingested_data(self, df: pd.DataFrame):
+
+        """
+            Function to get ingested data path from config class and stores the Dataframe  
+            csv in the ingested data directory. Creates the ingested data directory if it does not already exist\n
+            params -> df: Dataframe to be saved\n
+            returns -> None
+        """
+
+        try:
+            
+            path = self.config.ingested_dir
+            
+            if not os.path.exists(path):
+                logging.info(f"Creating Directory {path}") 
+                os.makedirs(path)
+
+            # save collection as a csv for training/testing
+            df.to_csv(self.config.ingested_dir)
+            logging.info(f"Saved Dataframe as CSV in directory {path}")
+
+            return
+
+        except ProjectError as e:
+            raise(e)
+        
+    def split_data(self, df: pd.DataFrame):
+
+        """
+            Function to split the given Dataframe into train and test subsets as per the config split ratio
+            And store the train and test files in the train/test file paths respectively\n
+            params -> df: Dataframe to be split\n
+            returns -> None
+        """
+
+        try:
+            
+            logging.info(f"Splitting Dataframe stored in directory {self.config.ingested_dir} in ratio {self.config.split_ratio}")
+
+            # split as per split ratio
+            train, test = train_test_split(df, test_size = self.config.split_ratio, random_state=42)
+
+            train_path = self.config.training_file_path
+            test_path = self.config.testing_file_path
+
+            if not os.path.exists(train_path):
+                logging.info(f"Creating Directory {train_path}") 
+                os.makedirs(train_path)
+
+            if not os.path.exists(test_path):
+                logging.info(f"Creating Directory {test_path}") 
+                os.makedirs(test_path)
+
+            # save in file path mentioned in config
+            train.to_csv(train_path)
+            test.to_csv(test_path)
+            
+            logging.info(f"Saved Dataframe split in train and test files into directories {train_path} and {test_path}")
+ 
+        except ProjectError as e:
+            raise(e)
+
+    
     def initiate_ingestion(self):
 
         """
             Function to intake the data from the Collection, convert it into a Dataframe, split it into train-test ratio 
-            and save the train/test files as a csv in the ingested directory
-            params -> None
+            and save the train/test files as a csv in the ingested directory\n
+            params -> None\n
             returns -> IngestionArtifact Dataclass object containing train and test file paths
         """
 
@@ -83,26 +148,9 @@ class IngestionComponent():
             # get DB collection as a dataframe
             df: pd.DataFrame = self.export_collection_as_df()
 
-            # save collection as a csv for training/testing
-            df.to_csv(self.config.ingested_dir)
-
-            logging.info(f"Saved Dataframe as CSV in directory {self.config.ingested_dir}")
-            logging.info(f"Splitting Dataframe stored in directory {self.config.ingested_dir} in ratio {self.config.split_ratio}")
-
-            # get x (base features) and y(price) in separate dataframes
-            y = df['price']
-            x = df.drop('price', axis = 1, inplace=True)
-
-            # split as per split ratio
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = self.config.split_ratio, random_state=42)
-
-            # save in file path mentioned in config
-            x_train.to_csv(os.path.join(self.config.training_file_path, 'x'))
-            y_train.to_csv(os.path.join(self.config.training_file_path, 'y'))
-            x_test.to_csv(os.path.join(self.config.testing_file_path, 'x'))
-            y_test.to_csv(os.path.join(self.config.testing_file_path, 'y'))
-
-            logging.info(f"Split Dataframe in train and test x and y files in directories {self.config.training_file_path} and {self.config.testing_file_path}")
+            self.export_to_ingested_data(df)
+        
+            self.split_data(df)
 
             return IngestionArtifact(self.config.training_file_path, self.config.testing_file_path)
 

@@ -16,7 +16,7 @@ class TrainingPipelineConfig():
         self.training_pipeline = train_p.PIPELINE_NAME
         self.artifact_name = train_p.ARTIFACT_DIR
         self.feature_store = train_p.FEATURE_STORE
-        self.artifact_dir = os.path.join(self.artifact_name, timestamp)
+        self.artifact_dir = os.path.join(self.artifact_name, f"_{timestamp}")
         self.timestamp = timestamp
         return
 
