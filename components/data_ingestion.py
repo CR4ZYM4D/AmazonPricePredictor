@@ -19,12 +19,12 @@ from dotenv import load_dotenv
 load_dotenv()
 MONGO_DB_URL = os.getenv("DB_URL")
 
-"""
-    Class for the Data Ingestion Component
-    params -> ingestion_config: IngestionConfig class object 
-"""
-
 class IngestionComponent():
+
+    """
+        Class for the Data Ingestion Component\n
+        params -> ingestion_config: IngestionConfig class object 
+    """
 
     def __init__(self, ingestion_config: IngestionConfig):
         
