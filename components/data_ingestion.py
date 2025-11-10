@@ -22,8 +22,11 @@ MONGO_DB_URL = os.getenv("DB_URL")
 class IngestionComponent():
 
     """
-        Class for the Data Ingestion Component\n
-        params -> ingestion_config: IngestionConfig class object 
+        Class for the Data Ingestion Component.
+        Ingests data from the mongo db collection and splits it into train and test files storing them within the feature store\n
+        params ->\n
+        ***ingestion_config***: IngestionConfig class object containing artifact, ingestion, ingested and feature_store directory paths
+        along with DB and collection anme and split ratio for train/test files
     """
 
     def __init__(self, ingestion_config: IngestionConfig):
@@ -77,7 +80,8 @@ class IngestionComponent():
         """
             Function to get ingested data path from config class and stores the Dataframe  
             csv in the ingested data directory. Creates the ingested data directory if it does not already exist\n
-            params -> df: Dataframe to be saved\n
+            params ->\n 
+            ***df***: Dataframe to be saved\n
             returns -> None
         """
 
@@ -103,7 +107,8 @@ class IngestionComponent():
         """
             Function to split the given Dataframe into train and test subsets as per the config split ratio
             And store the train and test files in the train/test file paths respectively\n
-            params -> df: Dataframe to be split\n
+            params ->\n 
+            ***df***: Dataframe to be split\n
             returns -> None
         """
 

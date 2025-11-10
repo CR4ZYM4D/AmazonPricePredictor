@@ -30,5 +30,5 @@ INVALID_DATA_DIR_NAME = "invalid_data"
 DRIFT_REPORT_DIR_NAME = "drift_reports"
 DRIFT_REPORT_FILE_NAME = "drift_report"
 SCHEMA_DIR_PATH = "schema"
-
+SCHEMA_FILE_PATH = "schema.yaml"
 

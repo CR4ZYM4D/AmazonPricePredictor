@@ -65,7 +65,8 @@ class ValidationConfig():
         self.drift_report_file = os.path.join(self.drift_report_dir, train_p.DRIFT_REPORT_FILE_NAME)
         
         # schema file path
-        self.schema_file_path = os.path.join(os.getcwd(), train_p.SCHEMA_DIR_PATH)
+        self.schema_dir_path = os.path.join(os.getcwd(), train_p.SCHEMA_DIR_PATH)
+        self.schema_file_path = os.path.join(self.schema_dir_path, train_p.SCHEMA_FILE_PATH)
         return
 
         
