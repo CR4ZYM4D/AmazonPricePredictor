@@ -14,7 +14,7 @@ class ValidationArtifact:
         Dataclass for the validation artifact containing the valid/invalid train and test file paths.
         Validation status and the drift report path    
     """
-
+    
     validation_status: bool
     valid_train_file_path: str
     invalid_train_file_path: str

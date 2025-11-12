@@ -1,0 +1,9 @@
+columns:
+ - sample_id: int64
+ - catalog_content: object
+ - image_link: object
+ - price: float64
+
+numerical_columns:
+ - sample_id
+ - price

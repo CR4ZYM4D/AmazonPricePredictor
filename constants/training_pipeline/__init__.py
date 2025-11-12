@@ -28,7 +28,7 @@ VALIDATION_DIR_NAME = "data_validation"
 VALID_DATA_DIR_NAME = "valid_data"
 INVALID_DATA_DIR_NAME = "invalid_data"
 DRIFT_REPORT_DIR_NAME = "drift_reports"
-DRIFT_REPORT_FILE_NAME = "drift_report"
+DRIFT_REPORT_FILE_NAME = "drift_report.yaml"
 SCHEMA_DIR_PATH = "schema"
 SCHEMA_FILE_PATH = "schema.yaml"
 
