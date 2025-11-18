@@ -6,5 +6,6 @@ dill
 pyam
 pymongo
 ipykernel
+PyYAML
 -e .
 

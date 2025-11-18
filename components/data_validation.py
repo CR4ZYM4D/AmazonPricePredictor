@@ -30,7 +30,7 @@ class DataValidation:
         
         try:
             
-            logging.info("-----Initializing Data Validation Component-----")
+            logging.info("----- Initializing Data Validation Component -----")
 
             # initialize the components and read the contents of schema.yaml
             self.ingestion_artifact = ingestion_artifact
