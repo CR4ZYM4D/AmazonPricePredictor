@@ -10,12 +10,6 @@ from entity.artifact_entity import IngestionArtifact, PreprocessingArtifact
 import emoji
 from nltk.corpus import stopwords
 
-# null handling imports
-from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, RobustScaler, PowerTransformer
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-
 # library and function imports
 import os
 import numpy as np
@@ -54,7 +48,7 @@ class PreProcessingComponent():
             params -> \n
             ***s***: string of the catalog_content column of the item\n
             returns -> \n
-            s: the processed string with stopwords and emojis removed, in lowercase
+            ***s***: the processed string with stopwords and emojis removed, in lowercase
         """
 
         try:
@@ -97,14 +91,69 @@ class PreProcessingComponent():
 
             quantity = np.float32(s[value_idx+8: unit_idx])
 
-            unit = s[unit_idx + 7]
+            unit = s[unit_idx + 7].strip()
 
             return (quantity, unit)
         
         except ProjectError as e:
             raise(e)
         
-    
+    def standardize_unit(self, df: pd.DataFrame, column_name: str = 'unit') -> pd.DataFrame:
+
+        """
+            function to standardize the units present in the specified column of the dataframe such as converting "fl_oz" and "fl oz" to "ml"\n
+            params ->\n
+            ***df***: dataframe whose units are to be standardized\n
+            ***column_name***: name of dataframe column containing the units (default = 'unit')\n
+            returns ->\n
+            ***df***: dataframe with columns for standardized units and type of qunatity it measures 
+        """
+
+        try:
+
+            # dict for standardization of units      
+            unit_map = {
+                        # fluid once variations to fl_oz 
+                        'fl_oz': 'fl_oz', 'fl': 'fl_oz', 'floz': 'fl_oz', 'fluid': 'fl_oz',
+                        # ml varaiations to ml
+                        'ml': 'ml', 'milliliter': 'ml', 'millilitre': 'ml', 'l': 'ml', 'liter': 'ml',
+                        # ounce variations to oz
+                        'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz',
+                        # pound variations to lb
+                        'lb': 'lb', 'pound': 'lb', 'pounds': 'lb',
+                        # gram variations to g
+                        'g': 'g', 'gram': 'g', 'grams': 'g', 'kg': 'kg',
+                        # count variations to count
+                        'count': 'count', 'ct': 'count', 'each': 'count', 'unit': 'count'
+                        }
+            
+            # replace the units  with their clean lowercase versions (if not already as such but safety)
+            df['clean_units'] = df[column_name].astype(str).str.lower().str.strip()
+
+            # map the clean unit to standardized unit from unit map using lambda
+            # next helps with faster searching as instead of comparing entire string,
+            # it just checks if k is substring of x if yes it just returns that
+            df['standardized_unit'] = df['clean_units'].map(lambda x: next(v for k,v in unit_map.items()if k in x), 'ambiguous')
+
+            # dict for getting type of quantity the unit measures
+            category_map = {
+                            # volume based quantities
+                            'fl_oz': 'volume', 'ml': 'volume', 
+                            # weight based
+                            'oz': 'weight', 'g': 'weight', 'lb': 'weight', 'kg': 'weight',
+                            # count based and ambiguous 
+                            'count': 'discrete_count', 'ambiguous': 'ambiguous'
+                            }
+            
+            df['unit_category'] = df['standardized_unit'].replace(category_map)
+
+            # remove clean unit column as it just add redundancy
+            df = df.drop('clean_units', inplace= True)
+
+            return df
+        
+        except ProjectError as e:
+            raise(e)
 
     def split_data(self, df: pd.DataFrame):
 
