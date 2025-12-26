@@ -3,10 +3,19 @@ from dataclasses import dataclass
 @dataclass
 class IngestionArtifact:
     """
-        Dataclass for the ingestion artifact containing the train and test file paths    
+        Dataclass for the ingestion artifact containing the ingested data file paths    
+    """
+    ingested_data_dir: str
+
+
+@dataclass
+class PreprocessingArtifact:
+    """
+        Dataclass for the ingestion artifact containing the preprocessed data train/test file paths    
     """
     train_file_path: str
-    test_file_path: str
+    test_file_path:str
+    
 
 @dataclass
 class ValidationArtifact:

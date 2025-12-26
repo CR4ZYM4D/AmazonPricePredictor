@@ -36,14 +36,26 @@ class IngestionConfig():
         self.ingestion_dir = os.path.join(self.tpo.artifact_dir, train_p.INGESTION_DIR_NAME)
         self.ingested_dir = os.path.join(self.ingestion_dir, train_p.INGESTED_DIR_NAME)
 
+    
+class PreprocessingConfig():
+
+    """
+        Class for the data pre-processing object
+    """
+
+    def __init__(self, training_pipeline_object: TrainingPipelineConfig = TrainingPipelineConfig()):
+
+        self.tpo = training_pipeline_object
+
         # feature store directory and train/test file paths
-        self.feature_store = os.path.join(self.ingestion_dir, train_p.FEATURE_STORE)
+        self.feature_store = os.path.join(self.tpo.artifact_dir, train_p.FEATURE_STORE)
         self.training_file_path = os.path.join(self.feature_store, train_p.TRAIN_FILE_NAME)
         self.testing_file_path = os.path.join(self.feature_store, train_p.TEST_FILE_NAME)
 
         # train/test split ratio
         self.split_ratio = train_p.SPLIT_RATIO
         return
+
 
 class ValidationConfig():
 

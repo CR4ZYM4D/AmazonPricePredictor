@@ -12,7 +12,6 @@ import os
 import numpy as np
 import pandas as pd
 import pymongo
-from sklearn.model_selection import train_test_split
 from dotenv import load_dotenv 
 
 # load env variables and get DB URL
@@ -101,45 +100,7 @@ class IngestionComponent():
 
         except ProjectError as e:
             raise(e)
-        
-    def split_data(self, df: pd.DataFrame):
-
-        """
-            Function to split the given Dataframe into train and test subsets as per the config split ratio
-            And store the train and test files in the train/test file paths respectively\n
-            params ->\n 
-            ***df***: Dataframe to be split\n
-            returns -> None
-        """
-
-        try:
             
-            logging.info(f"Splitting Dataframe stored in directory {self.config.ingested_dir} in ratio {self.config.split_ratio}")
-
-            # split as per split ratio
-            train, test = train_test_split(df, test_size = self.config.split_ratio, random_state=42)
-
-            train_path = self.config.training_file_path
-            test_path = self.config.testing_file_path
-
-            if not os.path.exists(train_path):
-                logging.info(f"Creating Directory {train_path}") 
-                os.makedirs(train_path)
-
-            if not os.path.exists(test_path):
-                logging.info(f"Creating Directory {test_path}") 
-                os.makedirs(test_path)
-
-            # save in file path mentioned in config
-            train.to_csv(train_path)
-            test.to_csv(test_path)
-            
-            logging.info(f"Saved Dataframe split in train and test files into directories {train_path} and {test_path}")
- 
-        except ProjectError as e:
-            raise(e)
-
-    
     def initiate_ingestion(self):
 
         """
@@ -154,10 +115,8 @@ class IngestionComponent():
             df: pd.DataFrame = self.export_collection_as_df()
 
             self.export_to_ingested_data(df)
-        
-            self.split_data(df)
 
-            return IngestionArtifact(self.config.training_file_path, self.config.testing_file_path)
+            return IngestionArtifact(self.config.ingested_dir)
 
         except ProjectError as e:
             raise(e)
