@@ -8,13 +8,13 @@ from pathlib import Path
 import sys
 import yaml
 
-def read_yaml(file_path: Path | str):
+def read_yaml(file_path: Path | str) -> dict: 
 
     """
         Reads The YAML file passed in the specified path and returns the stream object\n 
         params -> \n
         ***file_path*** : Path | str containing the path of the yaml file that needs to be read \n
-        returns -> YAML file stream object
+        returns ->\n YAML file stream object
     """
 
     try:
@@ -33,15 +33,17 @@ def read_yaml(file_path: Path | str):
     except ProjectError as e:
         raise(e)
     
-def write_yaml(data, file_path: Path | str, overwrite: bool = False):
+def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
 
     """
         Writes a data stream into the specified file path as a yaml file. If the path already exists, it throws an error and stops execution by default.\n
         Can be set to overwrite the pre-existing file contents as well.\n
         params ->\n
-        ***data***: The data to be written into the yaml file
-        ***file_path***: Path | str The path of the yaml file the data is to to be written in.
-        ***overwrite***: bool *default* = False Whether to overwrite the file if it already exists. False by default
+        ***data***: The data to be written into the yaml file. \n
+        ***file_path***: Path | str The path of the yaml file the data is to to be written in. \n
+        ***overwrite***: bool *default* = False Whether to overwrite the file if it already exists. False by default. \n
+        returns -> \n
+        None
     """
 
     try: 
