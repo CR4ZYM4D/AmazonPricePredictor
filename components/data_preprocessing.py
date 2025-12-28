@@ -16,6 +16,13 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+# conversion constants for a single measuring unit of each type 
+FLOZ_TO_ML = 29.5735
+L_TO_ML = 1000
+OZ_TO_G = 28.3495
+LB_TO_G = 453.592
+KG_TO_G = 1000
+
 
 class PreProcessingComponent():
 
@@ -91,12 +98,12 @@ class PreProcessingComponent():
 
             quantity = np.float32(s[value_idx+8: unit_idx])
 
-            unit = s[unit_idx + 7].strip()
+            unit = s[unit_idx + 7: ].strip()
 
             return (quantity, unit)
         
         except ProjectError as e:
-            raise(e)
+            return (np.nan, 'ambiguous')
         
     def standardize_unit(self, df: pd.DataFrame, column_name: str = 'unit') -> pd.DataFrame:
 
@@ -116,7 +123,7 @@ class PreProcessingComponent():
                         # fluid once variations to fl_oz 
                         'fl_oz': 'fl_oz', 'fl': 'fl_oz', 'floz': 'fl_oz', 'fluid': 'fl_oz',
                         # ml varaiations to ml
-                        'ml': 'ml', 'milliliter': 'ml', 'millilitre': 'ml', 'l': 'ml', 'liter': 'ml',
+                        'ml': 'ml', 'milliliter': 'ml', 'millilitre': 'ml', 'l': 'l', 'liter': 'l',
                         # ounce variations to oz
                         'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz',
                         # pound variations to lb
@@ -130,10 +137,8 @@ class PreProcessingComponent():
             # replace the units  with their clean lowercase versions (if not already as such but safety)
             df['clean_units'] = df[column_name].astype(str).str.lower().str.strip()
 
-            # map the clean unit to standardized unit from unit map using lambda
-            # next helps with faster searching as instead of comparing entire string,
-            # it just checks if k is substring of x if yes it just returns that
-            df['standardized_unit'] = df['clean_units'].map(lambda x: next(v for k,v in unit_map.items()if k in x), 'ambiguous')
+            # map the clean unit to standardized unit from unit map
+            df['standardized_unit'] = df['clean_units'].map(unit_map).fillna('ambiguous')
 
             # dict for getting type of quantity the unit measures
             category_map = {
@@ -148,12 +153,62 @@ class PreProcessingComponent():
             df['unit_category'] = df['standardized_unit'].replace(category_map)
 
             # remove clean unit column as it just add redundancy
-            df = df.drop('clean_units', inplace= True)
+            df.drop('clean_units', inplace= True)
 
             return df
         
         except ProjectError as e:
             raise(e)
+        
+    def normalize_quantities(self, df: pd.DataFrame):
+
+        """
+            Function to normalize the different quantitites to standard quantites(SI units) to ensure uniformity in item quantity\n
+            params -> \n
+            ***df***: dataframe to have quantities normalized\n
+            returns -> \n
+            None
+        """
+
+        try: 
+            
+            # np.slect for quick analysis 
+            conditions = [
+                          # volume
+                          df['standardized_unit'] == 'fl_oz', 
+                          df['standardized_unit'] == 'l',
+                          # weight
+                          df['standardized_unit'] == 'oz',
+                          df['standardized_unit'] == 'lb',
+                          df['standardized_unit'] == 'kg',
+                          # defaults
+                          df['standardized_unit'] == 'ml',
+                          df['standardized_unit'] == 'g',                          
+                          df['standardized_unit'] == 'count',
+                          df['standardized_unit'] == 'ambiguous'
+                          ]
+            
+            choices = [
+                       # volume
+                       df['quantity'] * FLOZ_TO_ML,
+                       df['quantity'] * L_TO_ML,
+                       # weight
+                       df['quantity'] * OZ_TO_G,
+                       df['quantity'] * LB_TO_G, 
+                       df['quantity'] * KG_TO_G,
+                       # defaults
+                       df['quantity'],
+                       df['quantity'],
+                       df['quantity'],
+                       df['quantity']                                             
+                       ]
+            
+            df['total_normalized_quantity'] = np.select(conditions, choices, df['quantity'])
+
+        except ProjectError as e:
+            raise(e)
+        
+    
 
     def split_data(self, df: pd.DataFrame):
 
