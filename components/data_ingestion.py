@@ -101,13 +101,13 @@ class IngestionComponent():
         except ProjectError as e:
             raise(e)
             
-    def initiate_ingestion(self):
+    def initiate_ingestion(self) -> IngestionArtifact:
 
         """
-            Function to intake the data from the Collection, convert it into a Dataframe, split it into train-test ratio 
-            and save the train/test files as a csv in the ingested directory\n
+            Function to intake the data from the Collection, convert it into a Dataframe, 
+            and save the files as a csv in the ingested directory\n
             params -> None\n
-            returns -> IngestionArtifact Dataclass object containing train and test file paths
+            returns -> IngestionArtifact Dataclass object containing ingested file paths
         """
 
         try:

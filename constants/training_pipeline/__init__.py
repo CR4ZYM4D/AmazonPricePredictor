@@ -10,6 +10,8 @@ SPLIT_RATIO = 0.2
 
 TARGET_COLUMN = 'price'
 ARTIFACT_DIR = 'artifacts'
+PREPROCESSING_DIRECTORY = 'preprocessing'
+PREPROCESSED_FILE_NAME = 'preprocessed_data.csv'
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
 

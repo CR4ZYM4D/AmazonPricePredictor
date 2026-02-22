@@ -37,8 +37,7 @@ class PreProcessingComponent():
             self.ingested_data_path = self.ingestion_artifact.ingested_data_dir
 
             self.config = preprocessing_config
-            self.train_file_path = self.config.training_file_path
-            self.test_file_path = self.config.testing_file_path
+            self.preprocessed_file_path = self.config.preprocessed_file_path
 
             # initialize set of stopwords to prevent re initiaslization for every string instance
             self.stopwords = set(stopwords.words('english'))
@@ -163,7 +162,7 @@ class PreProcessingComponent():
     def normalize_quantities(self, df: pd.DataFrame) -> pd.DataFrame:
 
         """
-            Function to normalize the different quantitites to standard quantites(SI units) to ensure uniformity in item quantity\n
+            Function to normalize the different quantitites to standard quantites(SI units) and take their natural logs to ensure uniformity in item quantity\n
             params -> \n
             ***df***: dataframe to have quantities normalized\n
             returns -> \n
@@ -206,6 +205,7 @@ class PreProcessingComponent():
             df['total_normalized_quantity'] = np.select(conditions, choices, df['quantity'])
 
             df['log_normalized_quantity'] = np.log1p(df['total_normalized_quantity'])
+
             return df
 
         except ProjectError as e:
@@ -246,11 +246,10 @@ class PreProcessingComponent():
         except ProjectError as e:
             raise(e)    
 
-    def split_data(self, df: pd.DataFrame):
+    def store_processed_data(self, df: pd.DataFrame):
 
         """
-            Function to split the given Dataframe into train and test subsets as per the config split ratio
-            And store the train and test files in the train/test file paths respectively\n
+            Function to store the given Dataframe into preprocessed file path. \n
             params ->\n 
             ***df***: Dataframe to be split\n
             returns -> None
@@ -258,27 +257,51 @@ class PreProcessingComponent():
 
         try:
             
-            logging.info(f"Splitting Dataframe stored in directory {self.ingested_data_path} in ratio {self.config.split_ratio}")
+            logging.info(f"Pre-Processing Dataframe stored in directory {self.ingested_data_path}")
 
-            # split as per split ratio
-            train, test = train_test_split(df, test_size = self.config.split_ratio, random_state=42)
-
-            train_path = self.config.training_file_path
-            test_path = self.config.testing_file_path
-
-            if not os.path.exists(train_path):
-                logging.info(f"Creating Directory {train_path}") 
-                os.makedirs(train_path)
-
-            if not os.path.exists(test_path):
-                logging.info(f"Creating Directory {test_path}") 
-                os.makedirs(test_path)
+            if not os.path.exists(self.preprocessed_file_path):
+                logging.info(f"Creating Directory {self.preprocessed_file_path}") 
+                os.makedirs(self.preprocessed_file_path)
 
             # save in file path mentioned in config
-            train.to_csv(train_path)
-            test.to_csv(test_path)
+            df.to_csv(self.preprocessed_file_path)
             
-            logging.info(f"Saved Dataframe split in train and test files into directories {train_path} and {test_path}")
+            logging.info(f"Processed Dataframe and stored in directory {self.preprocessed_file_path}")
  
+        except ProjectError as e:
+            raise(e)
+        
+    def initiate_preprocessing(self) -> PreprocessingArtifact:
+
+        """
+            Function to pre-process the DataFrame returned by the ingestion component and store the pre-processed 
+            DataFrame as a csv in the pre-processed data directory.\n
+            params -> None\n
+            returns -> PreProcessingArtifact Dataclass Object containing preprocessed file path  
+        """
+
+        try:
+
+            # read ingested dataframe
+            df: pd.DataFrame = pd.read_csv(self.ingested_data_path)
+
+            #apply basic preprocessing
+            df['catalog_quantity'].apply(self.basic_processing())
+
+            # find quantity and unit
+            df['quantity'], df['unit'] = zip(*df['quantity'].apply(self.find_quantity_and_unit()))
+
+            # standardize the units
+            df = self.standardize_unit(df, 'unit')
+
+            # normalize the quantities and extract any claims
+            df = self.normalize_quantities(df)
+            df = self.find_claims(df, 'catalog_content')
+
+            # store processed data
+            self.store_processed_data(df)
+
+            return PreprocessingArtifact(self.preprocessed_file_path)
+
         except ProjectError as e:
             raise(e)
