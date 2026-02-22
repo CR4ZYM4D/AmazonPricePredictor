@@ -5,3 +5,7 @@ numpy
 dill
 pyam
 pymongo
+ipykernel
+PyYAML
+nltk
+emoji

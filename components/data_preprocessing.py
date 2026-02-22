@@ -26,7 +26,7 @@ KG_TO_G = 1000
 
 class PreProcessingComponent():
 
-    def __init__(self, ingestion_artifact: IngestionArtifact, preprocessing_config: PreprocessingConfig):
+    def __init__(self, ingestion_artifact: IngestionArtifact, preprocessing_config: PreprocessingConfig) -> None:
         
         try:
             
@@ -48,7 +48,7 @@ class PreProcessingComponent():
 
             raise(e)
         
-    def basic_processing(self, s: str):
+    def basic_processing(self, s: str) -> str:
 
         """
             Function for basic proecessing of catalog content column string like converting to lower case, removing emojis and stopwords etc. \n
@@ -75,7 +75,7 @@ class PreProcessingComponent():
         except ProjectError as e:
             raise(e) 
 
-    def find_quantity_and_unit(self, s: str):
+    def find_quantity_and_unit(self, s: str) -> tuple:
 
         """
             Function to find the quantity and unit of a product specified in the item catalog_content column\n
@@ -103,7 +103,7 @@ class PreProcessingComponent():
             return (quantity, unit)
         
         except ProjectError as e:
-            return (np.nan, 'ambiguous')
+            return (e, 'ambiguous')
         
     def standardize_unit(self, df: pd.DataFrame, column_name: str = 'unit') -> pd.DataFrame:
 
@@ -143,7 +143,7 @@ class PreProcessingComponent():
             # dict for getting type of quantity the unit measures
             category_map = {
                             # volume based quantities
-                            'fl_oz': 'volume', 'ml': 'volume', 
+                            'fl_oz': 'volume', 'ml': 'volume', 'l': 'volume',
                             # weight based
                             'oz': 'weight', 'g': 'weight', 'lb': 'weight', 'kg': 'weight',
                             # count based and ambiguous 
@@ -160,19 +160,19 @@ class PreProcessingComponent():
         except ProjectError as e:
             raise(e)
         
-    def normalize_quantities(self, df: pd.DataFrame):
+    def normalize_quantities(self, df: pd.DataFrame) -> pd.DataFrame:
 
         """
             Function to normalize the different quantitites to standard quantites(SI units) to ensure uniformity in item quantity\n
             params -> \n
             ***df***: dataframe to have quantities normalized\n
             returns -> \n
-            None
+            ***df*** -> Modified pandas DataFrame
         """
 
         try: 
             
-            # np.slect for quick analysis 
+            # np.select for quick analysis 
             conditions = [
                           # volume
                           df['standardized_unit'] == 'fl_oz', 
@@ -205,10 +205,46 @@ class PreProcessingComponent():
             
             df['total_normalized_quantity'] = np.select(conditions, choices, df['quantity'])
 
+            df['log_normalized_quantity'] = np.log1p(df['total_normalized_quantity'])
+            return df
+
         except ProjectError as e:
             raise(e)
         
-    
+    def find_claims(self, df: pd.DataFrame, col_name: str = 'catalog_content') -> pd.DataFrame:
+
+        """
+            Function to find claims present in catalog content such as non-GMO, Gluten Free, organically made etc and one hot 
+            encode them in separate columns. \n
+            params -> \n
+            ***df***: Dataframe from which the extraction is to be performed on. \n
+            ***col_name***: Name of the dataframe column from which the features are to be extracted. \n
+            returns -> \n 
+            ***df***: modified pandas DataFrame  
+        """
+
+        try:
+            # create claims dict
+            claim_map = {
+                'is_organic': 'organic',
+                'is_non_gmo': 'non-gmo|non gmo',
+                'is_gluten_free': 'gluten-free|gluten free',
+                'is_keto': 'keto',
+                'is_vegan': 'vegan',
+                'is_kosher': 'kosher'
+            }
+
+            #convert col_name content to lower case
+            content_lower = df[col_name].astype(str).str.lower()
+            
+            # check through col_name content for any claims and set those to 1|0
+            for col, keyword in claim_map.items():
+                df[col] = content_lower.str.contains(keyword, regex=True, na=False).astype(np.int8)
+            
+            return df
+
+        except ProjectError as e:
+            raise(e)    
 
     def split_data(self, df: pd.DataFrame):
 

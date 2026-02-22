@@ -3,12 +3,12 @@
 from logger.logger import logging
 from exception.exception import ProjectError
 
-# validation config and artifact entity import 
+# validation config and artifact entity import
 from entity.config_entity import  ValidationConfig
 from entity.artifact_entity import IngestionArtifact, ValidationArtifact
 
 # utility function import
-from utils.main_utils.utils import read_yaml
+from utils.main_utils.utils import read_yaml, write_yaml
 
 # library and function imports
 import os
