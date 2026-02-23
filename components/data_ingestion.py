@@ -14,6 +14,8 @@ import pandas as pd
 import pymongo
 from dotenv import load_dotenv 
 
+import sys
+
 # load env variables and get DB URL
 load_dotenv()
 MONGO_DB_URL = os.getenv("DB_URL")
@@ -35,8 +37,8 @@ class IngestionComponent():
             self.config = ingestion_config
             logging.info("----- Initializing Data Ingestion Component -----")
 
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
         
     def export_collection_as_df(self):
 
@@ -71,8 +73,8 @@ class IngestionComponent():
             df.replace({'na': np.nan}, inplace = True)
             return df
 
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
         
     def export_to_ingested_data(self, df: pd.DataFrame):
 
@@ -98,8 +100,8 @@ class IngestionComponent():
 
             return
 
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
             
     def initiate_ingestion(self) -> IngestionArtifact:
 
@@ -118,5 +120,5 @@ class IngestionComponent():
 
             return IngestionArtifact(self.config.ingested_dir)
 
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)

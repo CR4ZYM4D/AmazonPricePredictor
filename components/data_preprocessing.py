@@ -14,7 +14,8 @@ from nltk.corpus import stopwords
 import os
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+
+import sys
 
 # conversion constants for a single measuring unit of each type 
 FLOZ_TO_ML = 29.5735
@@ -37,15 +38,15 @@ class PreProcessingComponent():
             self.ingested_data_path = self.ingestion_artifact.ingested_data_dir
 
             self.config = preprocessing_config
+            self.processed_file_directory = self.config.preprocessing_directory
             self.preprocessed_file_path = self.config.preprocessed_file_path
 
             # initialize set of stopwords to prevent re initiaslization for every string instance
             self.stopwords = set(stopwords.words('english'))
             self.stopwords.add('\n')
 
-        except ProjectError as e:
-
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
         
     def basic_processing(self, s: str) -> str:
 
@@ -71,8 +72,8 @@ class PreProcessingComponent():
 
             return ' '.join(filtered_words)
 
-        except ProjectError as e:
-            raise(e) 
+        except Exception as e:
+            raise ProjectError(e, sys) 
 
     def find_quantity_and_unit(self, s: str) -> tuple:
 
@@ -97,12 +98,12 @@ class PreProcessingComponent():
 
             quantity = np.float32(s[value_idx+8: unit_idx])
 
-            unit = s[unit_idx + 7: ].strip()
+            unit = s[unit_idx + 7: ].strip() if unit_idx != -1 else 'ambiguous'
 
             return (quantity, unit)
         
-        except ProjectError as e:
-            return (e, 'ambiguous')
+        except Exception as e:
+            return ProjectError(e, sys)
         
     def standardize_unit(self, df: pd.DataFrame, column_name: str = 'unit') -> pd.DataFrame:
 
@@ -156,8 +157,8 @@ class PreProcessingComponent():
 
             return df
         
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
         
     def normalize_quantities(self, df: pd.DataFrame) -> pd.DataFrame:
 
@@ -208,8 +209,8 @@ class PreProcessingComponent():
 
             return df
 
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
         
     def find_claims(self, df: pd.DataFrame, col_name: str = 'catalog_content') -> pd.DataFrame:
 
@@ -243,8 +244,8 @@ class PreProcessingComponent():
             
             return df
 
-        except ProjectError as e:
-            raise(e)    
+        except Exception as e:
+            raise ProjectError(e, sys)    
 
     def store_processed_data(self, df: pd.DataFrame):
 
@@ -259,17 +260,17 @@ class PreProcessingComponent():
             
             logging.info(f"Pre-Processing Dataframe stored in directory {self.ingested_data_path}")
 
-            if not os.path.exists(self.preprocessed_file_path):
-                logging.info(f"Creating Directory {self.preprocessed_file_path}") 
-                os.makedirs(self.preprocessed_file_path)
+            if not os.path.exists(self.processed_file_directory):
+                logging.info(f"Creating Directory {self.processed_file_directory}") 
+                os.makedirs(self.processed_file_directory)
 
             # save in file path mentioned in config
             df.to_csv(self.preprocessed_file_path)
             
             logging.info(f"Processed Dataframe and stored in directory {self.preprocessed_file_path}")
  
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)
         
     def initiate_preprocessing(self) -> PreprocessingArtifact:
 
@@ -286,10 +287,10 @@ class PreProcessingComponent():
             df: pd.DataFrame = pd.read_csv(self.ingested_data_path)
 
             #apply basic preprocessing
-            df['catalog_quantity'].apply(self.basic_processing())
+            df['catalog_content'] = df['catalog_content'].apply(self.basic_processing)
 
             # find quantity and unit
-            df['quantity'], df['unit'] = zip(*df['quantity'].apply(self.find_quantity_and_unit()))
+            df['quantity'], df['unit'] = zip(*df['catalog_content'].apply(self.find_quantity_and_unit))
 
             # standardize the units
             df = self.standardize_unit(df, 'unit')
@@ -303,5 +304,5 @@ class PreProcessingComponent():
 
             return PreprocessingArtifact(self.preprocessed_file_path)
 
-        except ProjectError as e:
-            raise(e)
+        except Exception as e:
+            raise ProjectError(e, sys)

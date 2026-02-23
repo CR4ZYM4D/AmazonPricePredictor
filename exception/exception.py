@@ -18,6 +18,6 @@ class ProjectError(Exception):
 
     def __str__(self):
 
-        return "Error occured in file [{0}] line number [{1}] message [{2}]".format((self.file_name, self.line_no, str(self.error_message)))    
+        return "Error occured in file [{0}] line number [{1}] message [{2}]".format(self.file_name, self.line_num, str(self.error_message))    
 
 
