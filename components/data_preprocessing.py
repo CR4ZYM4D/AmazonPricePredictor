@@ -46,6 +46,7 @@ class PreProcessingComponent():
             self.stopwords.add('\n')
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
         
     def basic_processing(self, s: str) -> str:
@@ -73,6 +74,7 @@ class PreProcessingComponent():
             return ' '.join(filtered_words)
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys) 
 
     def find_quantity_and_unit(self, s: str) -> tuple:
@@ -103,6 +105,7 @@ class PreProcessingComponent():
             return (quantity, unit)
         
         except Exception as e:
+            logging.error(e)
             return ProjectError(e, sys)
         
     def standardize_unit(self, df: pd.DataFrame, column_name: str = 'unit') -> pd.DataFrame:
@@ -158,6 +161,7 @@ class PreProcessingComponent():
             return df
         
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
         
     def normalize_quantities(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -210,6 +214,7 @@ class PreProcessingComponent():
             return df
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
         
     def find_claims(self, df: pd.DataFrame, col_name: str = 'catalog_content') -> pd.DataFrame:
@@ -245,6 +250,7 @@ class PreProcessingComponent():
             return df
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)    
 
     def store_processed_data(self, df: pd.DataFrame):
@@ -270,6 +276,7 @@ class PreProcessingComponent():
             logging.info(f"Processed Dataframe and stored in directory {self.preprocessed_file_path}")
  
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
         
     def initiate_preprocessing(self) -> PreprocessingArtifact:
@@ -305,4 +312,5 @@ class PreProcessingComponent():
             return PreprocessingArtifact(self.preprocessed_file_path)
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)

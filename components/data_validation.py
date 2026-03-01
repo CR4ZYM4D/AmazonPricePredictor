@@ -5,7 +5,7 @@ from exception.exception import ProjectError
 
 # validation config and artifact entity import
 from entity.config_entity import  ValidationConfig
-from entity.artifact_entity import IngestionArtifact, ValidationArtifact
+from entity.artifact_entity import PreprocessingArtifact, ValidationArtifact
 
 # utility function import
 from utils.main_utils.utils import read_yaml, write_yaml
@@ -26,14 +26,14 @@ class DataValidation:
         ***validation_config***: The ValidationConfig class containing the valid/invalid and schema directory paths 
     """
 
-    def __init__(self, ingestion_artifact: IngestionArtifact, validation_config: ValidationConfig):
+    def __init__(self, preprocessing_artifact: PreprocessingArtifact, validation_config: ValidationConfig):
         
         try:
             
             logging.info("----- Initializing Data Validation Component -----")
 
             # initialize the components and read the contents of schema.yaml
-            self.ingestion_artifact = ingestion_artifact
+            self.preprocessing_artifact = preprocessing_artifact
             self.config = validation_config
             self.schema_path = self.config.schema_file_path
 

@@ -1,36 +1,53 @@
 
-import os 
-import sys
-import numpy as np
-import pandas as pd
-
 """ Common constants to be used throughout the project"""
 
+# split ratio
 SPLIT_RATIO = 0.2
 
+# target column
 TARGET_COLUMN = 'price'
+
+# artifact directory name
 ARTIFACT_DIR = 'artifacts'
-PREPROCESSING_DIRECTORY = 'preprocessing'
-PREPROCESSED_FILE_NAME = 'preprocessed_data.csv'
+
+# feature store directory name
+FEATURE_STORE = 'features'
+
+# collection and DB name
+COLLECTION_NAME = 'PricePredictor'
+DB_NAME = 'AmazonPricePredictor'
+
+# train split file name
 TRAIN_FILE_NAME = 'train.csv'
+# test split file name
 TEST_FILE_NAME = 'test.csv'
 
 """Constants related to data ingestion"""
 
-COLLECTION_NAME = 'PricePredictor'
-DB_NAME = 'AmazonPricePredictor'
 INGESTION_DIR_NAME = 'data_ingestion'
 PIPELINE_NAME = 'PricePrediction'
-INGESTED_DIR_NAME = 'ingested_data'
-FEATURE_STORE = 'features'
+INGESTED_DIR_NAME = 'ingested_data.csv'
+
+"""Constants related to data pre-processing"""
+
+# pre-processing directory name
+PREPROCESSING_DIRECTORY = 'preprocessing'
+# pre-processed data file name
+PREPROCESSED_FILE_NAME = 'preprocessed_data.csv'
 
 """Constants related to data validation"""
 
+# data validation directory
 VALIDATION_DIR_NAME = "data_validation"
+# valid data directory
 VALID_DATA_DIR_NAME = "valid_data"
+# invalid data directory
 INVALID_DATA_DIR_NAME = "invalid_data"
+# drift report directory 
 DRIFT_REPORT_DIR_NAME = "drift_reports"
+# drift report file
 DRIFT_REPORT_FILE_NAME = "drift_report.yaml"
+# schema directory
 SCHEMA_DIR_PATH = "schema"
-SCHEMA_FILE_PATH = "schema.yaml"
-
+# schema file name
+SCHEMA_FILE_PATH = "column_schema.yaml"

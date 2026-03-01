@@ -38,6 +38,7 @@ class IngestionComponent():
             logging.info("----- Initializing Data Ingestion Component -----")
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
         
     def export_collection_as_df(self):
@@ -74,6 +75,7 @@ class IngestionComponent():
             return df
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
         
     def export_to_ingested_data(self, df: pd.DataFrame):
@@ -101,6 +103,7 @@ class IngestionComponent():
             return
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
             
     def initiate_ingestion(self) -> IngestionArtifact:
@@ -121,4 +124,5 @@ class IngestionComponent():
             return IngestionArtifact(self.config.ingested_dir)
 
         except Exception as e:
+            logging.error(e)
             raise ProjectError(e, sys)
