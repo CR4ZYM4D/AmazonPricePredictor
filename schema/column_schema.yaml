@@ -1,20 +1,20 @@
 columns:
- - sample_id: int64
- - catalog_content: object
- - image_link: object
- - price: float64
- - quantity: float64
- - unit: object
- - standardized_unit: object
- - unit_category: object
- - total_normalized_quantity: float64
- - log_normalized_quantity: float64
- - is_organic: object
- - is_non_gmo: object
- - is_gluten_free: object
- - is_keto: object
- - is_vegan: object
- - is_kosher: object
+  sample_id: int64
+  catalog_content: object
+  image_link: object
+  price: float64
+  quantity: float64
+  unit: object
+  standardized_unit: object
+  unit_category: object
+  total_normalized_quantity: float64
+  log_normalized_quantity: float64
+  is_organic: object
+  is_non_gmo: object
+  is_gluten_free: object
+  is_keto: object
+  is_vegan: object
+  is_kosher: object
 
 
 numerical_columns:

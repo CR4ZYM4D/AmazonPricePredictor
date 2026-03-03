@@ -13,7 +13,7 @@ Each log file contains logs in the format:
 
 '''
 
-LOG_FILE_NAME = f"{datetime.now().strftime("%m_%d_%Y_%H_%M_%S")}"
+LOG_FILE_NAME = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}"
 
 LOG_PATH = os.path.join(os.getcwd(), 'logs', LOG_FILE_NAME)
 

@@ -36,6 +36,7 @@ class IngestionConfig():
         self.ingestion_dir = os.path.join(self.tpo.artifact_dir, train_p.INGESTION_DIR_NAME)
         self.ingested_dir = os.path.join(self.ingestion_dir, train_p.INGESTED_DIR_NAME)
 
+        return
     
 class PreprocessingConfig():
 
@@ -53,7 +54,6 @@ class PreprocessingConfig():
         self.preprocessed_file_path = os.path.join(self.preprocessing_directory, train_p.PREPROCESSED_FILE_NAME)
 
         return
-
 
 class ValidationConfig():
 
@@ -77,6 +77,5 @@ class ValidationConfig():
         # schema file path
         self.schema_dir_path = os.path.join(os.getcwd(), train_p.SCHEMA_DIR_PATH)
         self.schema_file_path = os.path.join(self.schema_dir_path, train_p.SCHEMA_FILE_PATH)
-        return
 
-        
+        return

@@ -11,7 +11,7 @@ class IngestionArtifact:
 @dataclass
 class PreprocessingArtifact:
     """
-        Dataclass for the ingestion artifact containing the preprocessed data train/test file paths    
+        Dataclass for the ingestion artifact containing the preprocessed data file paths    
     """
     preprocessed_file_path: str
     

@@ -19,19 +19,24 @@ def read_yaml(file_path: Path | str) -> dict:
 
     try:
         
-        logging.info(f"Reading {file_path} yaml file")
+        logging.info(f"Reading {file_path} file")
         
         if os.path.exists(file_path):
-            with open(file_path, 'rb') as f:
+            with open(file_path, 'r', encoding = 'utf-8') as f:
 
                 schema = yaml.safe_load(f)
+
+                if schema is None:
+                    logging.warning("Schema is empty! no data has been read")
+                    raise ProjectError("Schema is empty! no data has been read", sys)
+
                 logging.info(f"Successfully read the yaml file")
                 return schema
         else: 
-            raise ProjectError("The specified YAML File Path does not exist! Please ensure the path is correct and try again")
+            raise ProjectError("The specified YAML File Path does not exist! Please ensure the path is correct and try again", sys)
 
-    except ProjectError as e:
-        raise(e)
+    except Exception as e:
+        raise ProjectError(e, sys)
     
 def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
 
@@ -56,11 +61,11 @@ def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
         logging.info(f"Creating file {file_path}")
         os.makedirs(file_path, exist_ok = True)
         
-        with open(file_path, 'w') as f:
+        with open(file_path, 'w', encoding = 'utf-8') as f:
 
             yaml.dump(data, f, default_flow_style= False)
             logging.info(f"Successfully written data into file {file_path}")
         return
 
-    except ProjectError as e:
-        raise(e)
+    except Exception as e:
+        raise ProjectError(e, sys)
