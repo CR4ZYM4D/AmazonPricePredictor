@@ -13,6 +13,12 @@ ARTIFACT_DIR = 'artifacts'
 # feature store directory name
 FEATURE_STORE = 'features'
 
+# base dataset directory
+BASE_DATASET_DIR = 'base_dataset'
+
+# base dataset file
+BASE_DATASET = 'train.csv'
+
 # collection and DB name
 COLLECTION_NAME = 'PricePredictor'
 DB_NAME = 'AmazonPricePredictor'

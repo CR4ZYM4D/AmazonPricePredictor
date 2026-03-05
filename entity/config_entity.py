@@ -65,6 +65,9 @@ class ValidationConfig():
 
         self.tpo = training_pipeline_object
 
+        # base dataset path
+        self.base_dataset_path = os.path.join(train_p.BASE_DATASET_DIR, train_p.BASE_DATASET)
+
         # validation and valid/invalid data directory paths
         self.validation_dir = os.path.join(self.tpo.artifact_dir, train_p.VALIDATION_DIR_NAME)
         self.valid_data_dir = os.path.join(self.validation_dir, train_p.VALID_DATA_DIR_NAME)

@@ -156,7 +156,7 @@ class PreProcessingComponent():
             df['unit_category'] = df['standardized_unit'].replace(category_map)
 
             # remove clean unit column as it just add redundancy
-            df.drop('clean_units', inplace= True)
+            df.drop('clean_units', axis = 1, inplace= True)
 
             return df
         

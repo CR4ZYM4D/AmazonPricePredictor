@@ -23,3 +23,13 @@ numerical_columns:
  - quantity
  - total_normalized_quantity
  - log_normalized_quantity
+
+categorical_columns:
+ - unit_category
+ - standardized_unit
+ - is_organic
+ - is_non_gmo
+ - is_gluten_free
+ - is_keto
+ - is_vegan
+ - is_kosher

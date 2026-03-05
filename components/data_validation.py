@@ -20,7 +20,7 @@ class DataValidation:
 
     """
         Class for Data Validation component.
-        Validates the data pulled by the ingestion component and tests it against the null hypothesis using ks 2 sampling method.\n
+        Validates the data pulled by the ingestion component and validates it against the base dataset using ks 2 sampling method.\n
         params ->\n
         ***ingestion_artifact***: The IngestionArtifact dataclass containing train/test file paths created by ingestion component\n
         ***validation_config***: The ValidationConfig class containing the valid/invalid and schema directory paths 
@@ -32,13 +32,17 @@ class DataValidation:
             
             logging.info("----- Initializing Data Validation Component -----")
 
+            # read base dataframe
+            self.base_dataset_path = self.config.base_dataset_path
+            self.base_dataframe = pd.read_csv(self.base_dataset_path)
+
             # initialize the components and read the contents of schema.yaml
             self.preprocessing_artifact = preprocessing_artifact
             self.preprocessed_file_path = preprocessing_artifact.preprocessed_file_path
+            self.processed_dataframe: pd.DataFrame = pd.read_csv(self.preprocessed_file_path)
+
             self.config = validation_config
             self.schema_path = self.config.schema_file_path
-
-            self.processed_dataframe: pd.DataFrame = pd.read_csv(self.preprocessed_file_path)
 
             logging.info("Reading column_schema.yaml file")
 
@@ -103,11 +107,38 @@ class DataValidation:
     def detect_drift(self):
         
         """
-            Function to detect data drift between the base model dataset and passed dataset using ks 2 sampling method 
+            Function to detect data drift between the base dataset and preprocessed dataset using ks 2 sampling method and binary/unit columns using chi square test. Data drift is detected both column wise and entire dataframe wise if data is valid the file will be split into train and test files and passed for training and transformation otherwise dumped into invalid data directory.\n
+            ***params*** -> \n
+            None\n
+            ***Returns*** -> \n
+            **drift_report**: **dict** containing the drift for each numerical column between the ingested and base dataset.\n
+            **validation_status**: **bool** if the number of numerical columns drift is too much it deems the dataset as invalid and unfit for usage
         """
 
         try:
-            pass
+
+            # get numerical column names
+            numerical_columns = list(set(self.schema['numerical_columns']) & self.processed_dataframe.columns)
+
+            # get categorical column names
+            categorical_columns = list(set(self.schema['categorical_columns']) & self.processed_dataframe.columns)
+
+            # drop sample id column as it is pointless to sample against
+            df_processed = df_processed.drop('sample_id', axis = 1) 
+            df_base = df_base.drop('sample_id', axis = 1)
+
+            # get the numerical and categorical features in two different dataframes
+            df_processed_numerical = df_processed[numerical_columns]
+            df_base_numerical = df_base[numerical_columns]
+
+            df_processed_categorical = df_processed[categorical_columns]
+            df_base_categorical = df_base[categorical_columns]
+
+            # sample between the two
+            self.detect_numerical_drift(df_processed_numerical, df_base_numerical)
+
+            self.detect_categorical_drift(df_processed_categorical, df_base_categorical)              
+
         except Exception as e:
             raise ProjectError(e, sys)
             
