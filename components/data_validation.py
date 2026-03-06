@@ -154,6 +154,67 @@ class DataValidation:
                     "drift_detected": drift_detected,
                 }
 
+            return drift_report
+
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    def detect_numerical_drift(self, df_processed: pd.DataFrame, df_base: pd.DataFrame, threshold: float = 0.05):
+
+        """
+
+        """
+
+        try:
+            
+            drift_report = {}
+
+            for column in df_processed.columns:
+
+                column_base = df_base[column].dropna()
+                column_processed = df_processed[column].dropna()
+
+                # safety check to see if columns have zero standard deviation i.e are constant
+                std_base = column_base.std()
+                std_processed = column_processed.std()
+
+                if(std_base == 0 and std_processed == 0):
+
+                    # check if both columns have equal mean (no drift) or not (drift present but both columns have constant value)
+                    mean_base = column_base.mean()
+                    mean_processed = column_processed.mean()
+
+                    if(mean_base == mean_processed):
+                        drift_report[column] = {
+                            'p_value': float(1.0),
+                            'mean': float(mean_base),
+                            'drift_detected': False
+                        }
+
+                    else:
+                        drift_report[column] = {
+                            'p_value': float(0.0),
+                            'mean': float(mean_processed),
+                            'drift_detected': True
+                        }
+                    continue
+
+                # check if both column values come from same distribution
+                # statistic near 0 is good (denotes maximum % gap or height difference between two curve heights in the
+                # dataframes at the same point), location tells point of maximum drift, positive sign means processed
+                # dataset is concentrated towards larger values and negative means towards lower values   
+                test_result = ks_2samp(column_base, column_processed, alternative = 'two-sided')
+
+                drift_report[column] = {
+                    "p_value": float(test_result.pvalue),
+                    "ks_statistic": float(test_result.statistic),
+                    "drift_detected": bool(test_result.pvalue < threshold),
+                    "direction": test_result.statistic_sign,
+                    "location": float(test_result.statistic_location)
+                }
+
+            return drift_report
+
         except Exception as e:
             raise ProjectError(e, sys)
 
@@ -177,8 +238,8 @@ class DataValidation:
             categorical_columns = list(set(self.schema['categorical_columns']) & self.processed_dataframe.columns)
 
             # drop sample id column as it is pointless to sample against
-            df_processed = df_processed.drop('sample_id', axis = 1) 
-            df_base = df_base.drop('sample_id', axis = 1)
+            df_processed = self.processed_dataframe.drop('sample_id', axis = 1) 
+            df_base = self.base_dataframe.drop('sample_id', axis = 1)
 
             # get the numerical and categorical features in two different dataframes
             df_processed_numerical = df_processed[numerical_columns]
