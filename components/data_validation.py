@@ -14,7 +14,7 @@ from utils.main_utils.utils import read_yaml, write_yaml
 import os
 import sys
 import pandas as pd
-from scipy.stats import ks_2samp
+from scipy.stats import ks_2samp, chi2_contingency
 
 class DataValidation:
 
@@ -100,6 +100,59 @@ class DataValidation:
                     column_validation['columns_with_nan'].append(column)
 
             return column_validation            
+
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    def detect_categorical_drift(self, processed_df: pd.DataFrame, base_df: pd.DataFrame, threshold: float = 0.05):
+
+        """
+        
+        """
+
+        try:
+            
+            drift_report = {}
+
+            for column in processed_df.columns:
+
+                # get all possible categories in a column
+                categories = sorted( 
+                                    set(base_df[column].dropna().unique())
+                                    .union(
+                                        set(processed_df[column].dropna().unique())
+                                    ) 
+                                )
+                
+                # skip column with no data or only one unique value (cannot drift)
+                if len(categories) < 2:
+                    drift_report[column] = {
+                        "p_value": 1.0,
+                        "degree_of_freedom": int(0),
+                        "drift_detected": False,
+                    }
+                    continue
+                
+                # get counts of the categories in both the columns
+                base_count = base_df[column].value_counts()
+                processed_count = processed_df[column].value_counts() 
+
+                # align the two count vectors into equal lengths if not already 
+                base_vector = [base_count.get(cat, 0) for cat in categories]
+                processed_vector = [processed_count.get(cat, 0) for cat in categories]
+
+                # create contingency table
+                contingency_table = [base_vector, processed_vector]
+
+                chi2_score, p_value, dof, expected = chi2_contingency(contingency_table)
+
+                drift_detected = p_value < threshold
+            
+                drift_report[column] = {
+                    "p_value": float(p_value),
+                    "degree_of_freedom": int(dof),
+                    "drift_detected": drift_detected,
+                }
 
         except Exception as e:
             raise ProjectError(e, sys)
