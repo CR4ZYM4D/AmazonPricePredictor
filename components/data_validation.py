@@ -54,7 +54,7 @@ class DataValidation:
 
         return
     
-    def validate_columns(self):
+    def validate_columns(self) -> dict:
         
         """
             Function to validate the columns in the preprocessed dataframe against the columns mentioned in column schema yaml file
@@ -104,7 +104,7 @@ class DataValidation:
         except Exception as e:
             raise ProjectError(e, sys)
         
-    def detect_categorical_drift(self, processed_df: pd.DataFrame, base_df: pd.DataFrame, threshold: float = 0.05):
+    def detect_categorical_drift(self, processed_df: pd.DataFrame, base_df: pd.DataFrame, threshold: float = 0.05) -> dict:
 
         """
         
@@ -159,7 +159,7 @@ class DataValidation:
         except Exception as e:
             raise ProjectError(e, sys)
         
-    def detect_numerical_drift(self, df_processed: pd.DataFrame, df_base: pd.DataFrame, threshold: float = 0.05):
+    def detect_numerical_drift(self, df_processed: pd.DataFrame, df_base: pd.DataFrame, threshold: float = 0.05) -> dict:
 
         """
 
@@ -218,7 +218,7 @@ class DataValidation:
         except Exception as e:
             raise ProjectError(e, sys)
 
-    def detect_drift(self):
+    def detect_drift(self) -> dict:
         
         """
             Function to detect data drift between the base dataset and preprocessed dataset using ks 2 sampling method and binary/unit columns using chi square test. Data drift is detected both column wise and entire dataframe wise if data is valid the file will be split into train and test files and passed for training and transformation otherwise dumped into invalid data directory.\n
@@ -226,10 +226,11 @@ class DataValidation:
             None\n
             ***Returns*** -> \n
             **drift_report**: **dict** containing the drift for each numerical column between the ingested and base dataset.\n
-            **validation_status**: **bool** if the number of numerical columns drift is too much it deems the dataset as invalid and unfit for usage
         """
 
         try:
+
+            drift_report = {}
 
             # get numerical column names
             numerical_columns = list(set(self.schema['numerical_columns']) & self.processed_dataframe.columns)
@@ -249,10 +250,51 @@ class DataValidation:
             df_base_categorical = df_base[categorical_columns]
 
             # sample between the two
-            self.detect_numerical_drift(df_processed_numerical, df_base_numerical)
+            drift_report['numerical_columns'] = self.detect_numerical_drift(df_processed_numerical, df_base_numerical)
+            drift_report['categorical_columns'] = self.detect_categorical_drift(df_processed_categorical, df_base_categorical)
 
-            self.detect_categorical_drift(df_processed_categorical, df_base_categorical)              
+            return drift_report             
 
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    def validate_data(self, drift_report: dict) -> bool:
+
+        """
+        
+        """
+
+        try:
+            
+            # get numerical and categorical drfit reports 
+            categorical: dict = drift_report['categorical_columns']
+            numerical: dict = drift_report['numerical_columns']
+
+            # get all column names from drift report
+            numerical_names: set = numerical.keys() 
+            categorical_names: set = categorical.keys()
+
+            all_column_names: set = categorical_names.union(numerical_names)
+
+            # check if all most critical columns are in drfit report and thus not missing from processed dataframe
+            critical_columns: set = set('total_normalized_quantity', 'log_normalized_quantity', 'unit_category', 'standardized_unit')
+
+            validation_status: bool = True
+
+            drifting_categories: int = 0
+
+            if any(s not in all_column_names for s in critical_columns):
+
+                logging.warning(f"One or more of the critical Columns missing from the preprocessed dataset.")
+
+                validation_status = False
+
+                return validation_status
+
+            # check fails i.e all necessary columns are present
+            
+
+  
         except Exception as e:
             raise ProjectError(e, sys)
             
