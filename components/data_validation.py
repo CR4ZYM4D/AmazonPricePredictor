@@ -15,6 +15,7 @@ import os
 import sys
 import pandas as pd
 from scipy.stats import ks_2samp, chi2_contingency
+from sklearn.model_selection import train_test_split
 
 class DataValidation:
 
@@ -111,6 +112,8 @@ class DataValidation:
         """
 
         try:
+
+            logging.info("Starting drift detection on categorical columns")
             
             drift_report = {}
 
@@ -154,6 +157,8 @@ class DataValidation:
                     "drift_detected": drift_detected,
                 }
 
+            logging.info("COmpleted categorical drift analysis")
+
             return drift_report
 
         except Exception as e:
@@ -167,6 +172,8 @@ class DataValidation:
 
         try:
             
+            logging.info("Starting drift detection on numerical columns")
+
             drift_report = {}
 
             for column in df_processed.columns:
@@ -213,6 +220,8 @@ class DataValidation:
                     "location": float(getattr(test_result, "statistic_location"))
                 }
 
+            logging.info("Completed numerical drift analysis")
+
             return drift_report
 
         except Exception as e:
@@ -229,6 +238,8 @@ class DataValidation:
         """
 
         try:
+
+            logging.info("Intializing drift analysis component")
     
             num_cols = [c for c in self.schema['numerical_columns'] if c in self.processed_dataframe.columns and c != 'sample_id']
             cat_cols = [c for c in self.schema['categorical_columns'] if c in self.processed_dataframe.columns]
@@ -303,6 +314,9 @@ class DataValidation:
             if(drifting_categories >= (int)(non_crtical_categories* 0.5)):
                 logging.warning(f"Around {(drifting_categories/non_crtical_categories)*100}% of categorical columns have drifted away. Discarding dataset due to context shift")
                 validation_status = False
+                return validation_status
+
+            logging.info("Column validation completed no drift detected in high priority columns and little to no drift detected in lower priority columns")
 
             return validation_status
   
@@ -311,7 +325,43 @@ class DataValidation:
             
     def init_validation(self) -> ValidationArtifact:
         
+        """
+        
+        """
+        
         try:
-            pass
+            
+            validation_report = {}
+
+            # validate column count
+            logging.info("checking for column counts, mismatching data types and columns having NaN values")
+            validation_report['column_status'] = self.validate_columns()
+
+            # get drift report
+            validation_report['drift_report'] = self.detect_drift()
+
+            # validate drift report 
+            validation_status = self.validate_data(validation_report['drift_report'])
+            validation_report['validation_status'] = validation_status
+
+            logging.info(f"Writing drift report to {self.config.drift_report_file}")
+            write_yaml(validation_report, self.config.drift_report_file)
+
+            if(validation_status):
+                logging.info(f"Data validation successful splitting data into train and test file paths and storing inside {self.config.valid_data_dir}")
+
+                train_file, test_file = train_test_split(self.processed_dataframe, self.config.split_ratio)
+
+                train_file.to_csv(self.config.train_file_path, index = False)    
+
+                test_file.to_csv(self.config.test_file_path, index = False)
+
+            else:
+                logging.info(f"Validation failed dumping data into {self.config.invalid_data_dir}")
+                self.processed_dataframe.to_csv(self.config.invalid_data_dir)
+
+            return ValidationArtifact(validation_status, self.config.train_file_path, self.config.invalid_data_dir, self.config.test_file_path, self.config.drift_report_file)
+
+
         except Exception as e:
             raise ProjectError(e, sys)

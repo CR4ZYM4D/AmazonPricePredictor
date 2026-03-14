@@ -73,6 +73,11 @@ class ValidationConfig():
         self.valid_data_dir = os.path.join(self.validation_dir, train_p.VALID_DATA_DIR_NAME)
         self.invalid_data_dir = os.path.join(self.validation_dir, train_p.INVALID_DATA_DIR_NAME)
 
+        self.train_file_path = os.path.join(self.valid_data_dir, train_p.TRAIN_FILE_NAME)
+        self.test_file_path = os.path.join(self.valid_data_dir, train_p.TEST_FILE_NAME)
+
+        self.split_ratio = train_p.SPLIT_RATIO
+
         # drift report directory and file paths         
         self.drift_report_dir = os.path.join(self.validation_dir, train_p.DRIFT_REPORT_DIR_NAME)
         self.drift_report_file = os.path.join(self.drift_report_dir, train_p.DRIFT_REPORT_FILE_NAME)
