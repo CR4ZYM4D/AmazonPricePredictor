@@ -32,6 +32,9 @@ class DataValidation:
             
             logging.info("----- Initializing Data Validation Component -----")
 
+            self.config = validation_config
+            self.schema_path = self.config.schema_file_path
+
             # read base dataframe
             self.base_dataset_path = self.config.base_dataset_path
             self.base_dataframe = pd.read_csv(self.base_dataset_path)
@@ -40,9 +43,6 @@ class DataValidation:
             self.preprocessing_artifact = preprocessing_artifact
             self.preprocessed_file_path = preprocessing_artifact.preprocessed_file_path
             self.processed_dataframe: pd.DataFrame = pd.read_csv(self.preprocessed_file_path)
-
-            self.config = validation_config
-            self.schema_path = self.config.schema_file_path
 
             logging.info("Reading column_schema.yaml file")
 
@@ -206,11 +206,11 @@ class DataValidation:
                 test_result = ks_2samp(column_base, column_processed, alternative = 'two-sided')
 
                 drift_report[column] = {
-                    "p_value": float(test_result.pvalue),
-                    "ks_statistic": float(test_result.statistic),
-                    "drift_detected": bool(test_result.pvalue < threshold),
-                    "direction": test_result.statistic_sign,
-                    "location": float(test_result.statistic_location)
+                    "p_value": float(getattr(test_result, "pvalue")),
+                    "ks_statistic": float(getattr(test_result, "statistic")),
+                    "drift_detected": bool(getattr(test_result, "pvalue") < threshold),
+                    "direction": getattr(test_result, "statistic_sign"),
+                    "location": float(getattr(test_result, "statistic_location"))
                 }
 
             return drift_report
@@ -229,32 +229,17 @@ class DataValidation:
         """
 
         try:
+    
+            num_cols = [c for c in self.schema['numerical_columns'] if c in self.processed_dataframe.columns and c != 'sample_id']
+            cat_cols = [c for c in self.schema['categorical_columns'] if c in self.processed_dataframe.columns]
 
-            drift_report = {}
-
-            # get numerical column names
-            numerical_columns = list(set(self.schema['numerical_columns']) & self.processed_dataframe.columns)
-
-            # get categorical column names
-            categorical_columns = list(set(self.schema['categorical_columns']) & self.processed_dataframe.columns)
-
-            # drop sample id column as it is pointless to sample against
-            df_processed = self.processed_dataframe.drop('sample_id', axis = 1) 
-            df_base = self.base_dataframe.drop('sample_id', axis = 1)
-
-            # get the numerical and categorical features in two different dataframes
-            df_processed_numerical = df_processed[numerical_columns]
-            df_base_numerical = df_base[numerical_columns]
-
-            df_processed_categorical = df_processed[categorical_columns]
-            df_base_categorical = df_base[categorical_columns]
-
-            # sample between the two
-            drift_report['numerical_columns'] = self.detect_numerical_drift(df_processed_numerical, df_base_numerical)
-            drift_report['categorical_columns'] = self.detect_categorical_drift(df_processed_categorical, df_base_categorical)
-
+            drift_report = {
+                'numerical_columns': self.detect_numerical_drift(self.processed_dataframe[num_cols], self.base_dataframe[num_cols]),
+                'categorical_columns': self.detect_categorical_drift(self.processed_dataframe[cat_cols], self.base_dataframe[cat_cols])
+            }
+    
             return drift_report             
-
+        
         except Exception as e:
             raise ProjectError(e, sys)
         
@@ -277,23 +262,49 @@ class DataValidation:
             all_column_names: set = categorical_names.union(numerical_names)
 
             # check if all most critical columns are in drfit report and thus not missing from processed dataframe
-            critical_columns: set = set('total_normalized_quantity', 'log_normalized_quantity', 'unit_category', 'standardized_unit')
+            critical_columns: set = {'total_normalized_quantity', 'log_normalized_quantity', 'unit_category', 'standardized_unit'}
 
             validation_status: bool = True
 
+            non_crtical_categories: int = 0
             drifting_categories: int = 0
 
             if any(s not in all_column_names for s in critical_columns):
 
-                logging.warning(f"One or more of the critical Columns missing from the preprocessed dataset.")
+                logging.warning(f"Critical Columns {critical_columns - all_column_names} missing from the preprocessed dataset.")
 
                 validation_status = False
 
                 return validation_status
 
             # check fails i.e all necessary columns are present
-            
+            # check for drifts in columns. If any high priority/critical columns have drift discard or else
+            # If majority of low priority columns have drift then context has changed and discard
 
+            for column in numerical_names:
+                if(numerical[column]['drift_detected'] == True):
+
+                    logging.info(f"Drift detected in {column} column with p-value equal to {numerical[column]['p_value']}. Discarding dataset")
+
+                    validation_status = False
+                    return validation_status
+                
+            if(categorical['standardized_unit']['drift_detected'] == True or categorical['unit_category']['drift_detected'] == True):
+                validation_status = False
+                return validation_status
+            
+            for column in categorical_names:
+                
+                if(categorical[column]['drift_detected'] == True and column not in critical_columns):    
+                    drifting_categories += 1
+                    non_crtical_categories += 1
+                    logging.info(f"Drfit detectd in {column} column of p-value eqaul to {categorical[column]['p_value']}")
+
+            if(drifting_categories >= (int)(non_crtical_categories* 0.5)):
+                logging.warning(f"Around {(drifting_categories/non_crtical_categories)*100}% of categorical columns have drifted away. Discarding dataset due to context shift")
+                validation_status = False
+
+            return validation_status
   
         except Exception as e:
             raise ProjectError(e, sys)
