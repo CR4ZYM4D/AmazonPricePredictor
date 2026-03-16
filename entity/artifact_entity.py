@@ -28,3 +28,14 @@ class ValidationArtifact:
     invalid_train_file_path: str
     valid_test_file_path: str
     drift_report_path:str
+
+
+@dataclass
+class TransformationArtifact:
+    """
+        Dataclass for the transformation artifact containing the transfomred train and test file paths along with the transformation object file path.    
+    """
+    transformed_train_path: str
+    transformed_test_path: str
+    transformation_object_path: str        
+

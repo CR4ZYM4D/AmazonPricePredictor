@@ -87,3 +87,27 @@ class ValidationConfig():
         self.schema_file_path = os.path.join(self.schema_dir_path, train_p.SCHEMA_FILE_PATH)
 
         return
+    
+class TransformationConfig():
+
+    """
+        Class for the Data Transformation Config object
+    """
+
+    def __init__(self, training_pipeline_object: TrainingPipelineConfig = TrainingPipelineConfig()):
+
+        self.tpo = training_pipeline_object
+
+        # data transformation directory path
+        self.transformation_dir = os.path.join(self.tpo.artifact_dir, train_p.TRANSFORMATION_DIR)
+
+        # transformed data directory path
+        self.transformed_data_dir = os.path.join(self.transformation_dir, train_p.TRANSFORMED_DATA_DIR)
+
+        # transformed train/test file
+        self.transformed_train_path = os.path.join(self.transformed_data_dir, train_p.TRANSFORMED_TRAIN_FILE)        
+        self.transformed_test_path = os.path.join(self.transformed_data_dir, train_p.TRANSFORMED_TEST_FILE)
+        # transformation object directory path
+        self.transformation_object_dir = os.path.join(self.transformation_dir, train_p.TRANSFORMATION_OBJECT_DIR)
+        # transformation object file path
+        self.transformation_object_path = os.path.join(self.transformation_object_dir, train_p.TRANSFORMATION_OBJECT_FILE)

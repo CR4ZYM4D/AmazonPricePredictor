@@ -1,3 +1,5 @@
+import numpy as np
+
 
 """ Common constants to be used throughout the project"""
 
@@ -57,3 +59,27 @@ DRIFT_REPORT_FILE_NAME = "drift_report.yaml"
 SCHEMA_DIR_PATH = "schema"
 # schema file name
 SCHEMA_FILE_PATH = "column_schema.yaml"
+
+
+"""Constants related to data transformation"""
+
+# transformation directory
+TRANSFORMATION_DIR = "data_transformation"
+# transformed data directory
+TRANSFORMED_DATA_DIR = "transformed_data"
+# transformation object directory
+TRANSFORMATION_OBJECT_DIR = "transformation_object"
+# transformation object file
+TRANSFORMATION_OBJECT_FILE = "transformation_object"
+# transformed train file
+TRANSFORMED_TRAIN_FILE = "train.csv"
+# transformed test file
+TRANSFORMED_TEST_FILE = "test.csv"
+# KNN imputer parameters
+KNN_IMPUTER_PARAMS = {
+                    
+                    "missing_values": np.nan,
+                    "n_neighbours": [3, 5, 7],
+                    "weights": ['uniform',"distance"]
+
+                 }
