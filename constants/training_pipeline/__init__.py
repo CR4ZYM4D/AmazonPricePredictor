@@ -72,9 +72,11 @@ TRANSFORMATION_OBJECT_DIR = "transformation_object"
 # transformation object file
 TRANSFORMATION_OBJECT_FILE = "transformation_object"
 # transformed train file
-TRANSFORMED_TRAIN_FILE = "train.csv"
+TRANSFORMED_TRAIN_FILE = "train_x.csv"
+TRANSFORMED_TRAIN_RES_FILE = 'train_y.csv'
 # transformed test file
-TRANSFORMED_TEST_FILE = "test.csv"
+TRANSFORMED_TEST_FILE = "test_x.csv"
+TRANSFORMED_TEST_RES_FILE = 'test_y.csv'
 # KNN imputer parameters
 KNN_IMPUTER_PARAMS = {
                     
@@ -83,3 +85,5 @@ KNN_IMPUTER_PARAMS = {
                     "weights": ['uniform',"distance"]
 
                  }
+
+TARGET_COLUMN = 'price'

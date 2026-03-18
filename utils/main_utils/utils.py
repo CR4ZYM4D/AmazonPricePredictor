@@ -3,10 +3,13 @@ from logger.logger import logging
 from exception.exception import ProjectError
 
 # library import
+import numpy as np
 import os
 from pathlib import Path
 import sys
 import yaml
+from typing import Any
+import pickle
 
 def read_yaml(file_path: Path | str) -> dict: 
 
@@ -33,7 +36,7 @@ def read_yaml(file_path: Path | str) -> dict:
                 logging.info(f"Successfully read the yaml file")
                 return schema
         else: 
-            raise ProjectError("The specified YAML File Path does not exist! Please ensure the path is correct and try again", sys)
+            raise ProjectError(f"The specified YAML File Path {file_path} does not exist! Please ensure the path is correct and try again", sys)
 
     except Exception as e:
         raise ProjectError(e, sys)
@@ -55,8 +58,8 @@ def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
         
         if os.path.exists(file_path) and overwrite == False:
 
-            logging.info("The specified file path exists and overwrite was set to False. Exitting loop")
-            raise(ProjectError("The specified file already exists!"))
+            logging.info(f"The specified file path {file_path} exists and overwrite was set to False. Exitting loop")
+            raise(ProjectError("The specified file already exists!", sys))
         
         logging.info(f"Creating file {file_path}")
         os.makedirs(file_path, exist_ok = True)
@@ -64,6 +67,70 @@ def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
         with open(file_path, 'w', encoding = 'utf-8') as f:
 
             yaml.dump(data, f, default_flow_style= False)
+            logging.info(f"Successfully written data into file {file_path}")
+        return
+
+    except Exception as e:
+        raise ProjectError(e, sys)
+    
+def write_numpy_array(array: np.ndarray, file_path: Path | str, overwrite: bool = False):
+
+    """
+        Writes a numpy array into the specified file path as a numpy array. If the path already exists, it throws an error and stops execution by default.\n
+        Can be set to overwrite the pre-existing file contents as well.\n
+        params ->\n
+        ***data***: The data to be written into the array. \n
+        ***file_path***: Path | str The path of the file the array is to to be written in. \n
+        ***overwrite***: bool *default* = False Whether to overwrite the file if it already exists. False by default. \n
+        returns -> \n
+        None
+    """
+
+    try: 
+        
+        if os.path.exists(file_path) and overwrite == False:
+
+            logging.info(f"The specified file path exists {file_path} and overwrite was set to False. Exitting loop")
+            raise(ProjectError("The specified file already exists!", sys))
+        
+        logging.info(f"Creating file {file_path}")
+        os.makedirs(file_path, exist_ok = True)
+        
+        with open(file_path, 'wb') as f:
+
+            np.save( f, array, allow_pickle = False)
+            logging.info(f"Successfully written data into file {file_path}")
+        return
+
+    except Exception as e:
+        raise ProjectError(e, sys)
+    
+def save_as_pickle(object: Any, file_path: Path | str, overwrite: bool = False):
+    
+    """
+        Writes data into the specified file path as a pickle object. If the path already exists, it throws an error and stops execution by default.\n
+        Can be set to overwrite the pre-existing file contents as well.\n
+        params ->\n
+        ***data***: The data to be written into the object. \n
+        ***file_path***: Path | str The path of the file the array is to to be written in. \n
+        ***overwrite***: bool *default* = False Whether to overwrite the file if it already exists. False by default. \n
+        returns -> \n
+        None
+    """
+
+    try: 
+        
+        if os.path.exists(file_path) and overwrite == False:
+
+            logging.info(f"The specified file path {file_path} exists and overwrite was set to False. Exitting loop")
+            raise(ProjectError("The specified file already exists!", sys))
+        
+        logging.info(f"Creating file {file_path}")
+        os.makedirs(file_path, exist_ok = True)
+        
+        with open(file_path, 'wb') as f:
+
+            pickle.dump(object, f)
             logging.info(f"Successfully written data into file {file_path}")
         return
 
