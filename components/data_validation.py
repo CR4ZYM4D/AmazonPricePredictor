@@ -21,9 +21,9 @@ class DataValidation:
 
     """
         Class for Data Validation component.
-        Validates the data pulled by the ingestion component and validates it against the base dataset using ks 2 sampling method.\n
+        Validates the data pulled by the ingestion component after it is preprocessed and validates it against the base dataset using ks 2 sampling method.\n
         params ->\n
-        ***ingestion_artifact***: The IngestionArtifact dataclass containing train/test file paths created by ingestion component\n
+        ***preprocessing_artifact***: The PreprocessingArtifact dataclass containing feature store and preprocessed data file paths created by preprocessing component\n
         ***validation_config***: The ValidationConfig class containing the valid/invalid and schema directory paths 
     """
 

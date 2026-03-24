@@ -27,6 +27,14 @@ KG_TO_G = 1000
 
 class PreProcessingComponent():
 
+    """
+        Class for Data Preprocessing component.
+        Pre-processes and performs feature engineering on the data pulled by the ingestion component and stores it in the preprocessing directory path.\n
+        params ->\n
+        ***ingestion_artifact***: The IngestionArtifact dataclass containing ingested file path created by ingestion component\n
+        ***preprocessing_config***: The PreprocessingConfig class containing the Feature store and preprocessed file path. 
+    """    
+
     def __init__(self, ingestion_artifact: IngestionArtifact, preprocessing_config: PreprocessingConfig) -> None:
         
         try:
