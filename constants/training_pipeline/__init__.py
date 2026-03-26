@@ -72,11 +72,9 @@ TRANSFORMATION_OBJECT_DIR = "transformation_object"
 # transformation object file
 TRANSFORMATION_OBJECT_FILE = "transformation_object"
 # transformed train file
-TRANSFORMED_TRAIN_FILE = "train_x.csv"
-TRANSFORMED_TRAIN_RES_FILE = 'train_y.csv'
+TRANSFORMED_TRAIN_FILE = "train.csv"
 # transformed test file
-TRANSFORMED_TEST_FILE = "test_x.csv"
-TRANSFORMED_TEST_RES_FILE = 'test_y.csv'
+TRANSFORMED_TEST_FILE = "test.csv"
 # KNN imputer parameters
 KNN_IMPUTER_PARAMS = {
                     

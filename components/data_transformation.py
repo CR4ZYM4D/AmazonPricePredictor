@@ -1,21 +1,23 @@
-
+# logger and exception import
 from logger.logger import logging
 from exception.exception import ProjectError
 
+# transformation config, imputer constants and artifact entity import
 from entity.config_entity import TransformationConfig
 from entity.artifact_entity import ValidationArtifact, TransformationArtifact
 from constants.training_pipeline import KNN_IMPUTER_PARAMS, SIMPLE_IMPUTER_PARAMS, TARGET_COLUMN
 from utils.main_utils.utils import write_numpy_array, save_as_pickle
 
+# library and function imports
 import sys
 import os
 from pathlib import Path
- 
 import numpy as np  
 import pandas as pd
 
+# imputer, transformer, scaler and encoder imports
 from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, RobustScaler
+from sklearn.preprocessing import OneHotEncoder, RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
@@ -42,12 +44,9 @@ class TransformationComponent():
             self.test_file_src_path = validation_artifact.valid_test_file_path
             
             # intialize train/test destination paths
-            self.train_x_path = self.config.transformed_trainx_file
-            self.train_y_path = self.config.transformed_trainy_file
-
-            self.test_x_path = self.config.transformed_testx_file
-            self.test_y_path = self.config.transformed_testy_file
-
+            self.train_path = self.config.transformed_train_file
+            self.test_path = self.config.transformed_test_file
+            
             # initialize imputer destination path
             self.imputer_object_path = self.config.transformation_object_path
 
@@ -79,7 +78,7 @@ class TransformationComponent():
         except Exception as e:
             raise ProjectError(e, sys)        
 
-    def initialize_imputer_object(self) -> Pipeline:
+    def initialize_imputer_object(self) -> ColumnTransformer:
 
         """
         """
@@ -147,8 +146,8 @@ class TransformationComponent():
             test_df: pd.DataFrame = TransformationComponent.read_data(self.test_file_src_path)
 
             # drop those columns where target column value is NaN
-            train_df = train_df.dropna(subset = [TARGET_COLUMN], inplace= True)
-            test_df = test_df.dropna(subset = [TARGET_COLUMN], inplace = True)
+            train_df.dropna(subset = [TARGET_COLUMN], inplace= True)
+            test_df.dropna(subset = [TARGET_COLUMN], inplace = True)
 
             # separate feature and target columns and drop index count column from features if present
             train_y = train_df[TARGET_COLUMN]
@@ -157,7 +156,22 @@ class TransformationComponent():
             train_x = train_df.drop(columns = [TARGET_COLUMN, 'sample_id'], errors = 'ignore')
             test_x = test_df.drop(columns = [TARGET_COLUMN, 'sample_id'], errors = 'ignore')    
 
+            # get transformer object
+            preprocessor = self.initialize_imputer_object()
 
+            logging.info("Fitting and Transforming Input Train and Test Features")
+            input_train_features = preprocessor.fit_transform(train_x).astype(np.float32)
+            input_test_features = preprocessor.transform(test_x).astype(np.float32)
+
+            train_arr = np.c_[input_train_features, train_y]
+            test_arr = np.c_[input_test_features, test_y]
+
+            write_numpy_array(train_arr, self.train_path)
+            write_numpy_array(test_arr, self.test_path)
+
+            save_as_pickle(preprocessor, self.imputer_object_path)
+
+            return TransformationArtifact(self.train_path, self.test_path, self.imputer_object_path)
 
         except Exception as e:
             raise ProjectError(e, sys)

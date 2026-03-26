@@ -108,10 +108,8 @@ class TransformationConfig():
         self.transformed_train_directory = os.path.join(self.transformed_data_dir, "train")        
         self.transformed_test_directory = os.path.join(self.transformed_data_dir, "test")
 
-        self.transformed_trainx_file = os.path.join(self.transformed_train_directory, train_p.TRANSFORMED_TRAIN_FILE)
-        self.transformed_trainy_file = os.path.join(self.transformed_train_directory, train_p.TRANSFORMED_TRAIN_RES_FILE)
-        self.transformed_testx_file = os.path.join(self.transformed_test_directory, train_p.TRANSFORMED_TEST_FILE)
-        self.transformed_testy_file = os.path.join(self.transformed_test_directory, train_p.TRANSFORMED_TEST_RES_FILE)
+        self.transformed_train_file = os.path.join(self.transformed_train_directory, train_p.TRANSFORMED_TRAIN_FILE)
+        self.transformed_test_file = os.path.join(self.transformed_test_directory, train_p.TRANSFORMED_TEST_FILE)
 
         # transformation object directory path
         self.transformation_object_dir = os.path.join(self.transformation_dir, train_p.TRANSFORMATION_OBJECT_DIR)
