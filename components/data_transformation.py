@@ -4,7 +4,7 @@ from exception.exception import ProjectError
 
 from entity.config_entity import TransformationConfig
 from entity.artifact_entity import ValidationArtifact, TransformationArtifact
-from constants.training_pipeline import KNN_IMPUTER_PARAMS, TARGET_COLUMN
+from constants.training_pipeline import KNN_IMPUTER_PARAMS, SIMPLE_IMPUTER_PARAMS, TARGET_COLUMN
 from utils.main_utils.utils import write_numpy_array, save_as_pickle
 
 import sys
@@ -14,7 +14,9 @@ from pathlib import Path
 import numpy as np  
 import pandas as pd
 
-from sklearn.impute import KNNImputer
+from sklearn.impute import KNNImputer, SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, RobustScaler
+from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 class TransformationComponent():
@@ -53,35 +55,109 @@ class TransformationComponent():
             raise ProjectError(e, sys)
         
     @staticmethod
-    def read_data(path: str | Path):
+    def read_data(path: str | Path) -> pd.DataFrame:
 
         """
-
+            Reads the CSV in the specified file path and returns the DataFrame.\n
+            params ->\n
+            ***path***: Path | String of the CSV to be read.\n
+            returns -> \n
+            ***df***: The CSV that was stored in the specified file path
         """
 
         try:
             
-            logging.info(f"Reading CSV in location: {path}")
-            df: pd.DataFrame = pd.read_csv(path)
-            return df
+            if not (os.path.exists(path)):
+                logging.warning(f"There is NO path as {path} to read any CSV check and enter correct path")
+                raise ProjectError(f"Invalid path entered to read CSV. No path as {path}", sys)
+                                
+            else:
+                logging.info(f"Reading CSV in location: {path}")
+                df: pd.DataFrame = pd.read_csv(path)
+                return df
 
         except Exception as e:
             raise ProjectError(e, sys)        
 
     def initialize_imputer_object(self) -> Pipeline:
 
-        """"""
+        """
+        """
 
         try:
-            pass
+            
+            logging.info("Intializing preprocessor object for column transformation")
+
+            # define continous and categorical features to encode and transform
+            continous_features = ['quantity', 'log_normalized_quantity', 'total_normalized_quantity']
+
+            categorical_features = ['unit_category', 'standardized_unit']
+
+            # define numerical pipeline for quantity
+            num_pipeline = Pipeline(
+
+                                steps = [
+
+                                    ("imputer", KNNImputer(**KNN_IMPUTER_PARAMS)),
+                                    ("scaler", RobustScaler())
+
+                                ]
+
+                           )
+            
+            # define encoder pipeline for units
+            cat_pipeline = Pipeline(
+
+                                steps = [
+
+                                    ("imputer", SimpleImputer(**SIMPLE_IMPUTER_PARAMS)),
+                                    ("encoder", OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+
+                                ]
+
+                           )
+            
+            # define column transformer object
+            preprocessor = ColumnTransformer(
+
+                            transformers = [
+
+                                ('num_pipeline', num_pipeline, continous_features),
+                                ('categorical_pipeline', cat_pipeline, categorical_features)
+
+                            ],
+                            remainder = 'passthrough'
+
+                           )
+
+            return preprocessor
+            
         except Exception as e:
             raise ProjectError(e, sys)
 
     def initiate_data_transformation(self):
 
-        """"""
+        """
+        """
 
         try:
-            pass
+            
+            # read train and test CSV
+            train_df: pd.DataFrame = TransformationComponent.read_data(self.train_file_src_path)
+            test_df: pd.DataFrame = TransformationComponent.read_data(self.test_file_src_path)
+
+            # drop those columns where target column value is NaN
+            train_df = train_df.dropna(subset = [TARGET_COLUMN], inplace= True)
+            test_df = test_df.dropna(subset = [TARGET_COLUMN], inplace = True)
+
+            # separate feature and target columns and drop index count column from features if present
+            train_y = train_df[TARGET_COLUMN]
+            test_y = test_df[TARGET_COLUMN]
+
+            train_x = train_df.drop(columns = [TARGET_COLUMN, 'sample_id'], errors = 'ignore')
+            test_x = test_df.drop(columns = [TARGET_COLUMN, 'sample_id'], errors = 'ignore')    
+
+
+
         except Exception as e:
             raise ProjectError(e, sys)

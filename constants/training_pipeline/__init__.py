@@ -81,9 +81,16 @@ TRANSFORMED_TEST_RES_FILE = 'test_y.csv'
 KNN_IMPUTER_PARAMS = {
                     
                     "missing_values": np.nan,
-                    "n_neighbours": [3, 5, 7],
-                    "weights": ['uniform',"distance"]
+                    "n_neighbours": 5,
+                    "weights": "distance"
 
                  }
+
+SIMPLE_IMPUTER_PARAMS = {
+    
+                        "strategy": "constant",
+                        "fill_value": "missing"
+
+                     }
 
 TARGET_COLUMN = 'price'
