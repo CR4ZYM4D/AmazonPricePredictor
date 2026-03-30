@@ -92,3 +92,17 @@ SIMPLE_IMPUTER_PARAMS = {
                      }
 
 TARGET_COLUMN = 'price'
+
+"""Constants related to model training"""
+
+# model directory name
+MODEL_DIR_NAME = "models"
+# trained model directory
+TRAINED_MODELS = "trained_models"
+# failed model directory
+FAILED_MODELS = 'poor_fit_models'
+# trained model name
+MODEL_NAME = "pricePredictorModel"
+# expected metrics
+ACCURACY_BASE = 0.60
+OVERFIT_UNDERFIT_THRESHOLD = 0.05
