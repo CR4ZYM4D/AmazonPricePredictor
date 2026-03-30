@@ -73,6 +73,35 @@ def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
     except Exception as e:
         raise ProjectError(e, sys)
     
+def read_numpy_array(file_path: Path | str) -> np.ndarray:
+    
+    """
+        Reads The numpy array passed in the specified path and returns the array object\n 
+        params -> \n
+        ***file_path*** : Path | str containing the path of the numpy array that needs to be read \n
+        returns ->\n numpy arrray object
+    """
+    
+    try:
+            
+        logging.info(f"Reading {file_path} file")
+        
+        if os.path.exists(file_path):
+            
+            array: np.ndarray = np.load(file_path)
+
+            if array is None:
+                logging.warning("array is empty! no data has been read")
+                raise ProjectError("array is empty! no data has been read", sys)
+
+            logging.info(f"Successfully read the numpy array")
+            return array
+        else: 
+            raise ProjectError(f"The specified nunmpy array {file_path} does not exist! Please ensure the path is correct and try again", sys)
+
+    except Exception as e:
+        raise ProjectError(e, sys)
+    
 def write_numpy_array(array: np.ndarray, file_path: Path | str, overwrite: bool = False):
 
     """
@@ -98,12 +127,41 @@ def write_numpy_array(array: np.ndarray, file_path: Path | str, overwrite: bool 
         
         with open(file_path, 'wb') as f:
 
-            np.save( f, array, allow_pickle = False)
+            np.save(f, array, allow_pickle = False)
             logging.info(f"Successfully written data into file {file_path}")
         return
 
     except Exception as e:
         raise ProjectError(e, sys)
+    
+def read_pickle_object(file_path: Path | str): 
+
+    """
+        Reads The pickle object passed in the specified path and returns the object\n 
+        params -> \n
+        ***file_path*** : Path | str containing the path of the numpy array that needs to be read \n
+        returns ->\n pickle object
+    """
+
+    try:
+
+        logging.info(f"Reading {file_path} file")
+        
+        if os.path.exists(file_path):
+            
+            object = pickle.load(file_path)
+
+            if object is None:
+                logging.warning("pickled object is empty! no data has been read")
+                raise ProjectError("pickled object is empty! no data has been read", sys)
+
+            logging.info(f"Successfully read the pickle object")
+            return object
+        else: 
+            raise ProjectError(f"The specified pickle object {file_path} does not exist! Please ensure the path is correct and try again", sys)
+        
+    except Exception as e:
+        raise ProjectError(e, sys) 
     
 def save_as_pickle(object: Any, file_path: Path | str, overwrite: bool = False):
     

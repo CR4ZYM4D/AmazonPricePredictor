@@ -38,3 +38,23 @@ class TransformationArtifact:
     transformed_test_path: str
     transformation_object_path: str        
 
+@dataclass
+class MetricArtifact:
+    """
+        Dataclass containing the metrics of the models i.e. accuracy, recall, precision and f1 score
+        for easy access and storage 
+    """
+    accuracy: float
+    precision: float
+    recall: float
+    f1_score: float
+
+@dataclass
+class ModelTrainerArtifact:
+    """
+        Dataclass for the model trainer artifact containing the trained model path and the model metrics artifact for train and test datasets  
+    """
+
+    model_file_path: str
+    train_metric_artifact: MetricArtifact
+    test_metric_artifact: MetricArtifact

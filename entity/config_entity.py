@@ -116,25 +116,26 @@ class TransformationConfig():
         # transformation object file path
         self.transformation_object_path = os.path.join(self.transformation_object_dir, train_p.TRANSFORMATION_OBJECT_FILE)
 
-    class ModelTrainerConfig():
+class ModelTrainerConfig():
 
-        """Class for the model trainer config object"""
+    """
+        Class for the model trainer config object
+    """
 
-        def __init__(self, training_pipeline_object: TrainingPipelineConfig = TrainingPipelineConfig()):
+    def __init__(self, training_pipeline_object: TrainingPipelineConfig = TrainingPipelineConfig()):
 
-            self.tpo = training_pipeline_object
+        self.tpo = training_pipeline_object
 
-            # initialize models directory path
-            self.models_dir = os.path.join(self.tpo, train_p.MODEL_DIR_NAME)
+        # initialize models directory path
+        self.models_dir = os.path.join(self.tpo, train_p.MODEL_DIR_NAME)
             
-            # initialize trained/failed models directory
-            self.model_trainer_dir = os.path.join(self.tpo, train_p.TRAINED_MODELS)
-            self.failed_model_dir = os.path.join(self.tpo, train_p.FAILED_MODELS)
+        # initialize trained/failed models directory
+        self.model_trainer_dir = os.path.join(self.tpo, train_p.TRAINED_MODELS)
+        self.failed_model_dir = os.path.join(self.tpo, train_p.FAILED_MODELS)
 
-            # initialize trainjed model file path
-            self.trained_model_path = train_p.MODEL_NAME
+        # initialize trainjed model file path
+        self.trained_model_path = train_p.MODEL_NAME
 
-            # intialize metrics
-            self.base_accuracy = train_p.ACCURACY_BASE
-            self.overfit_underfit_threshold = train_p.OVERFIT_UNDERFIT_THRESHOLD
-            
+        # intialize metrics
+        self.base_accuracy = train_p.ACCURACY_BASE
+        self.overfit_underfit_threshold = train_p.OVERFIT_UNDERFIT_THRESHOLD            
