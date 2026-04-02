@@ -41,13 +41,13 @@ class TransformationArtifact:
 @dataclass
 class MetricArtifact:
     """
-        Dataclass containing the metrics of the models i.e. accuracy, recall, precision and f1 score
+        Dataclass containing the metrics of the models i.e. R^2 variance, MAE, MSE and RMSE
         for easy access and storage 
     """
-    accuracy: float
-    precision: float
-    recall: float
-    f1_score: float
+    r2_score: float
+    mean_square_error: float
+    root_mean_square_error: float
+    mean_absolute_percentage_error: float
 
 @dataclass
 class ModelTrainerArtifact:

@@ -20,7 +20,22 @@ from sklearn.neighbors import KNeighborsRegressor
 from  sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor
 
-# r2 score function and grid search function imports
-from sklearn.metrics import r2_score
+# grid search function imports
 from sklearn.model_selection import GridSearchCV
 
+class ModelTrainer():
+
+    def __init__(self, train_config: ModelTrainerConfig, transformation_artifact: TransformationArtifact):
+
+        try:
+            
+            self.config = train_config
+            self.artifact = transformation_artifact
+            self.train_array_path = self.artifact.transformed_train_path
+            self.test_array_path = self.artifact.transformed_test_path
+            self.preprocessor_path = self.artifact.transformation_object_path 
+
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    
