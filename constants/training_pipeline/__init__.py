@@ -1,5 +1,5 @@
 import numpy as np
-
+import os
 
 """ Common constants to be used throughout the project"""
 
@@ -106,3 +106,5 @@ MODEL_NAME = "pricePredictorModel"
 # expected metrics
 ACCURACY_BASE = 0.60
 OVERFIT_UNDERFIT_THRESHOLD = 0.05
+# best model directory
+SAVED_MODEL_DIRECTORY = os.path.join(MODEL_DIR_NAME, "SAVED_MODEL")
