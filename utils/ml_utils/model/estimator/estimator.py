@@ -33,7 +33,7 @@ class PredictorModel:
         try:
 
             x_transformed = self.preprocessor.transform(x)
-            y_pred = self.model.predict(x)
+            y_pred = self.model.predict(x_transformed)
 
             return y_pred
         

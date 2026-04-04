@@ -323,7 +323,7 @@ class DataValidation:
         except Exception as e:
             raise ProjectError(e, sys)
             
-    def init_validation(self) -> ValidationArtifact:
+    def initiate_data_validation(self) -> ValidationArtifact:
         
         """
         
