@@ -12,7 +12,7 @@ from entity.config_entity import ModelTrainerConfig
 from entity.artifact_entity import TransformationArtifact, ModelTrainerArtifact
 
 # util fucntion imports
-from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array
+from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array, evaluate_models
 from utils.ml_utils.metric.regression_metric import get_prediction_score
 from utils.ml_utils.model.estimator.estimator import PredictorModel
 
@@ -21,9 +21,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from  sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor
-
-# grid search function imports
-from sklearn.model_selection import GridSearchCV
 
 class ModelTrainer():
 
@@ -41,7 +38,7 @@ class ModelTrainer():
         except Exception as e:
             raise ProjectError(e, sys)
         
-    def train_model(self, x_train: np.ndarray, x_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray):
+    def train_model(self, train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray, test_y: np.ndarray):
 
         """
 
@@ -87,8 +84,16 @@ class ModelTrainer():
                                            "max_features": ["log2", "sqrt", 0.5, 0.7, 0.8]
                                          }
                        }
-            
-            
+
+            # get model performance reports            
+            model_report: dict = evaluate_models(models, params, train_x, train_y, test_x, test_y)
+
+            # sort the dict based on best model to get its artifact
+            model_report = dict(sorted(model_report.items(), key = lambda item: item[1][''], reverse = True))
+
+
+
+
 
         except Exception as e:
             raise ProjectError(e, sys)

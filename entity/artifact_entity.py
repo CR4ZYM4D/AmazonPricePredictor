@@ -45,8 +45,8 @@ class MetricArtifact:
         for easy access and storage 
     """
     r2_score: float
-    mean_square_error: float
-    root_mean_square_error: float
+    mean_squared_error: float
+    root_mean_squared_error: float
     mean_absolute_percentage_error: float
 
 @dataclass

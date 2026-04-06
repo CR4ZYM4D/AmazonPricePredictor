@@ -3,13 +3,20 @@ from logger.logger import logging
 from exception.exception import ProjectError
 
 # library import
-import numpy as np
 import os
-from pathlib import Path
 import sys
-import yaml
+from pathlib import Path
 from typing import Any
+
+# library imports for non OS/sys things 
+import yaml
+import numpy as np
 import pickle
+from dataclasses import asdict
+from sklearn.model_selection import GridSearchCV
+
+# fucntion and classes imports
+from ml_utils.metric.regression_metric import get_prediction_score
 
 def read_yaml(file_path: Path | str) -> dict: 
 
@@ -192,5 +199,56 @@ def save_as_pickle(object: Any, file_path: Path | str, overwrite: bool = False):
             logging.info(f"Successfully written data into file {file_path}")
         return
 
+    except Exception as e:
+        raise ProjectError(e, sys)
+    
+def evaluate_models(models: dict, params: dict, train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray, test_y: np.ndarray) -> dict:
+
+    """
+    
+    """
+
+    try:
+        
+        # init dict to return
+        report = {}
+
+        # init dict to track metrics
+        score_dict = {
+                        "rmse": "neg_root_mean_squared_error",
+                        "mape": "neg_mean_absolute_percentage_error",
+                        "mse": "neg_mean_squared_error",
+                        "R2": 'r2' 
+                     }
+
+        # iterate through all models and params
+        for key, value in models.items():
+
+            # get params dict
+            param = params.get(key)
+
+            # init grid search choosing model with best MAPE
+            grid = GridSearchCV(value, param, cv = 5, scoring = score_dict, refit = "mape")
+
+            # fit on x and y train
+            grid.fit(train_x, train_y)
+
+            # get best model of its type
+            model = grid.best_estimator_
+
+            # get prediction on train and test x to compare and put in report
+            train_y_pred = model.predict(train_x)
+            test_y_pred = model.predict(test_x)
+
+            # get metrics comparing prediction and actual values
+            train_metrics: dict = asdict(get_prediction_score(train_y_pred, train_y))
+            test_metrics: dict = asdict(get_prediction_score(test_y_pred, test_y))
+
+            # log metrics inside model key
+            report[key] = {"train_metrics": train_metrics, "test_metrics": test_metrics}
+
+        # return report
+        return report
+      
     except Exception as e:
         raise ProjectError(e, sys)
