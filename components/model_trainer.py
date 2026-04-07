@@ -13,6 +13,7 @@ from entity.artifact_entity import TransformationArtifact, ModelTrainerArtifact
 
 # util fucntion imports
 from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array, evaluate_models, write_yaml
+from utils.ml_utils.metric.regression_metric import get_prediction_score
 from utils.ml_utils.model.estimator.estimator import PredictorModel
 
 # model imports
@@ -102,6 +103,12 @@ class ModelTrainer():
 
             best_model.fit(train_x, train_y)
 
+            train_y_pred = best_model.predict(train_x)
+            test_y_pred = best_model.predict(test_x)
+
+            train_metrics = get_prediction_score(train_y_pred, train_y)
+            test_metrics = get_prediction_score(test_y_pred, test_y)
+
             preprocessor = read_pickle_object(self.preprocessor_path)
 
             predictor_model = PredictorModel(preprocessor, best_model)
@@ -112,8 +119,7 @@ class ModelTrainer():
             logging.info(f"Writing model reports at file path {self.config.reports_path}")
             write_yaml(model_report, self.config.reports_path)
 
-            return ModelTrainerArtifact(self.config.trained_model_path, )
-
+            return ModelTrainerArtifact(self.config.trained_model_path, train_metrics, test_metrics)
 
         except Exception as e:
             raise ProjectError(e, sys)
@@ -137,9 +143,9 @@ class ModelTrainer():
             y_train = transformed_test_array[:, :-1]
             y_test = transformed_test_array[:, -1]
 
-            self.train_model(x_train, x_test, y_train, y_test)
+            artifact: ModelTrainerArtifact = self.train_model(x_train, x_test, y_train, y_test)
 
-
+            return artifact
 
         except Exception as e:
             raise ProjectError(e, sys)
