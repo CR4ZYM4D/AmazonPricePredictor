@@ -8,10 +8,8 @@ import sys
 
 # library imports for type safety 
 import numpy as np
+import pandas as pd
 from sklearn.compose import ColumnTransformer
-
-# model name and directory import
-from constants.training_pipeline import MODEL_DIR_NAME, MODEL_NAME
 
 class PredictorModel:
 
@@ -24,7 +22,7 @@ class PredictorModel:
         except Exception as e:
             raise ProjectError(e, sys)
 
-    def predict(self, x: np.ndarray):
+    def predict(self, x: pd.DataFrame)-> np.ndarray:
 
         """
         

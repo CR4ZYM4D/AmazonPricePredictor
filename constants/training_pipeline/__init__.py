@@ -52,7 +52,7 @@ VALID_DATA_DIR_NAME = "valid_data"
 # invalid data directory
 INVALID_DATA_DIR_NAME = "invalid_data"
 # drift report directory 
-DRIFT_REPORT_DIR_NAME = "drift_reports"
+REPORT_DIR_NAME = "reports"
 # drift report file
 DRIFT_REPORT_FILE_NAME = "drift_report.yaml"
 # schema directory
@@ -99,12 +99,10 @@ TARGET_COLUMN = 'price'
 MODEL_DIR_NAME = "models"
 # trained model directory
 TRAINED_MODELS = "trained_models"
-# failed model directory
-FAILED_MODELS = 'poor_fit_models'
 # trained model name
 MODEL_NAME = "pricePredictorModel"
 # expected metrics
 ACCURACY_BASE = 0.60
 OVERFIT_UNDERFIT_THRESHOLD = 0.05
-# best model directory
-SAVED_MODEL_DIRECTORY = os.path.join(MODEL_DIR_NAME, "SAVED_MODEL")
+# model metric file name
+MODEL_METRICS = "model_metrics.yaml"

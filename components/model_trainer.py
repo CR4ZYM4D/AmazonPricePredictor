@@ -12,8 +12,7 @@ from entity.config_entity import ModelTrainerConfig
 from entity.artifact_entity import TransformationArtifact, ModelTrainerArtifact
 
 # util fucntion imports
-from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array, evaluate_models
-from utils.ml_utils.metric.regression_metric import get_prediction_score
+from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array, evaluate_models, write_yaml
 from utils.ml_utils.model.estimator.estimator import PredictorModel
 
 # model imports
@@ -38,7 +37,7 @@ class ModelTrainer():
         except Exception as e:
             raise ProjectError(e, sys)
         
-    def train_model(self, train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray, test_y: np.ndarray):
+    def train_model(self, train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray, test_y: np.ndarray) -> ModelTrainerArtifact:
 
         """
 
@@ -59,12 +58,12 @@ class ModelTrainer():
             # init model params
             params: dict = {
                         "k_neighbours_regressor": {
-                                                    "n_neighbours": [3, 5, 7], 
-                                                    "weights": ["uniform, distance"],
+                                                    "n_neighbors": [3, 5, 7], 
+                                                    "weights": ["uniform", "distance"],
                                                     "p": [1,2,3]
                                                   },
                         "decision_tree":{
-                                          "criterion": 'absolute_error',
+                                          "criterion": ['absolute_error'],
                                           "splitter": ["best", "random"],
                                           "max_features": ["log2", "sqrt", 0.5, 0.7, 0.8]
                                         },
@@ -79,20 +78,41 @@ class ModelTrainer():
                                           },
                         "random_forest": {
                                            "n_estimators": [50, 75, 100, 125, 150],
-                                           "criterion": 'absolute_error',
-                                           "n_jobs": -1,
+                                           "criterion": ['absolute_error'],
+                                           "n_jobs": [-1],
                                            "max_features": ["log2", "sqrt", 0.5, 0.7, 0.8]
                                          }
                        }
 
             # get model performance reports            
-            model_report: dict = evaluate_models(models, params, train_x, train_y, test_x, test_y)
+            model_report = evaluate_models(models, params, train_x, train_y, test_x, test_y)
 
             # sort the dict based on best model to get its artifact
-            model_report = dict(sorted(model_report.items(), key = lambda item: item[1][''], reverse = True))
+            sorted_keys = sorted(model_report.items(), key = lambda item: item[1]['test_metrics']['mean_absolute_percentage_error'])
 
+            # get best model name
+            best_model_name = sorted_keys[0][0]
 
+            # get best model params
+            model_params = sorted_keys[0][1]["hyperparameters"]
 
+            # train best model
+            best_model = models[best_model_name]
+            best_model.set_params(**model_params)
+
+            best_model.fit(train_x, train_y)
+
+            preprocessor = read_pickle_object(self.preprocessor_path)
+
+            predictor_model = PredictorModel(preprocessor, best_model)
+
+            logging.info(f"saving best model in file path: {self.config.trained_model_path}")
+            save_as_pickle(predictor_model, self.config.trained_model_path, overwrite = True)
+
+            logging.info(f"Writing model reports at file path {self.config.reports_path}")
+            write_yaml(model_report, self.config.reports_path)
+
+            return ModelTrainerArtifact(self.config.trained_model_path, )
 
 
         except Exception as e:

@@ -79,7 +79,7 @@ class ValidationConfig():
         self.split_ratio = train_p.SPLIT_RATIO
 
         # drift report directory and file paths         
-        self.drift_report_dir = os.path.join(self.validation_dir, train_p.DRIFT_REPORT_DIR_NAME)
+        self.drift_report_dir = os.path.join(self.validation_dir, train_p.REPORT_DIR_NAME)
         self.drift_report_file = os.path.join(self.drift_report_dir, train_p.DRIFT_REPORT_FILE_NAME)
         
         # schema file path
@@ -130,11 +130,15 @@ class ModelTrainerConfig():
         self.models_dir = os.path.join(self.tpo, train_p.MODEL_DIR_NAME)
             
         # initialize trained/failed models directory
-        self.model_trainer_dir = os.path.join(self.tpo, train_p.TRAINED_MODELS)
-        self.failed_model_dir = os.path.join(self.tpo, train_p.FAILED_MODELS)
+        self.model_trainer_dir = os.path.join(self.models_dir, train_p.TRAINED_MODELS)
 
-        # initialize trainjed model file path
-        self.trained_model_path = train_p.MODEL_NAME
+        # initialize trained model file path
+        self.trained_model_path = os.path.join(self.model_trainer_dir, train_p.MODEL_NAME)
+
+        self.reports_dir = os.path.join(self.tpo, train_p.REPORT_DIR_NAME)
+
+        # initialize reports path
+        self.reports_path = os.path.join(self.reports_dir, train_p.MODEL_METRICS)
 
         # intialize metrics
         self.base_accuracy = train_p.ACCURACY_BASE

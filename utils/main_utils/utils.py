@@ -228,7 +228,7 @@ def evaluate_models(models: dict, params: dict, train_x: np.ndarray, train_y: np
             param = params.get(key)
 
             # init grid search choosing model with best MAPE
-            grid = GridSearchCV(value, param, cv = 5, scoring = score_dict, refit = "mape")
+            grid = GridSearchCV(value, param, cv = 5, scoring = score_dict, refit = "mape", n_jobs = -1)
 
             # fit on x and y train
             grid.fit(train_x, train_y)
@@ -245,9 +245,10 @@ def evaluate_models(models: dict, params: dict, train_x: np.ndarray, train_y: np
             test_metrics: dict = asdict(get_prediction_score(test_y_pred, test_y))
 
             # log metrics inside model key
-            report[key] = {"train_metrics": train_metrics, "test_metrics": test_metrics}
+            report[key] = {"train_metrics": train_metrics, "test_metrics": test_metrics, "hyperparameters": grid.best_params_}
+            
 
-        # return report
+        # return reportand best models
         return report
       
     except Exception as e:
