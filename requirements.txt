@@ -1,5 +1,6 @@
 python-dotenv
 scikit-learn
+mlflow
 pandas
 numpy
 dill

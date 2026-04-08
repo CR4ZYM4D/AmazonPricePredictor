@@ -6,6 +6,7 @@ from exception.exception import ProjectError
 import os
 import sys
 import numpy as np
+import mlflow
 
 # artifact and config entity imports
 from entity.config_entity import ModelTrainerConfig
@@ -13,6 +14,7 @@ from entity.artifact_entity import TransformationArtifact, ModelTrainerArtifact
 
 # util fucntion imports
 from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array, evaluate_models, write_yaml
+from utils.ml_utils.metric.flatten_dict import flatten_dict
 from utils.ml_utils.metric.regression_metric import get_prediction_score
 from utils.ml_utils.model.estimator.estimator import PredictorModel
 
@@ -87,6 +89,18 @@ class ModelTrainer():
 
             # get model performance reports            
             model_report = evaluate_models(models, params, train_x, train_y, test_x, test_y)
+
+            # flatten model report for mlflow
+            model_mlflow_report = flatten_dict(model_report)
+
+            # separate hyperparams and metrics from dict for separate logging
+            params_to_log = {k: v for k, v in model_mlflow_report.items() if "hyperparameters" in k}
+            metrics_to_log = {k: v for k, v in model_mlflow_report.items() if "hyperparameters" not in k}
+
+            # log both metrics and hyperparamters
+            with mlflow.start_run(run_name = "training stage", nested = True):
+                mlflow.log_metrics(metrics_to_log)
+                mlflow.log_params(params_to_log) 
 
             # sort the dict based on best model to get its artifact
             sorted_keys = sorted(model_report.items(), key = lambda item: item[1]['test_metrics']['mean_absolute_percentage_error'])

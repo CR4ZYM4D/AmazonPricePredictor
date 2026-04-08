@@ -9,11 +9,13 @@ from entity.artifact_entity import PreprocessingArtifact, ValidationArtifact
 
 # utility function import
 from utils.main_utils.utils import read_yaml, write_yaml
+from utils.ml_utils.metric.flatten_dict import flatten_dict 
 
 # library and function imports
 import os
 import sys
 import pandas as pd
+import mlflow
 from scipy.stats import ks_2samp, chi2_contingency
 from sklearn.model_selection import train_test_split
 
@@ -248,6 +250,12 @@ class DataValidation:
                 'numerical_columns': self.detect_numerical_drift(self.processed_dataframe[num_cols], self.base_dataframe[num_cols]),
                 'categorical_columns': self.detect_categorical_drift(self.processed_dataframe[cat_cols], self.base_dataframe[cat_cols])
             }
+
+            # flatten drift report for mlflow metrics
+            metrics_dict = flatten_dict(drift_report)
+
+            with mlflow.start_run(run_name = "validation stage", nested = True):
+                mlflow.log_metrics(metrics_dict)
     
             return drift_report             
         
