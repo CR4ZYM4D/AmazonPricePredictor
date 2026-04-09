@@ -110,6 +110,12 @@ class TrainingPipeline():
             ingestion_artifact = self.start_ingestion()
             preprocessing_artifact = self.start_preprocessing(ingestion_artifact)
             validation_artifact = self.start_validation(preprocessing_artifact)
+
+            if validation_artifact.validation_status == False:
+
+                logging.critical("Validation status Failed Discarding Data from training and exitting with exit code 1")
+                exit(1)
+
             transformation_artifact = self.start_transformation(validation_artifact)
             training_artifact = self.start_training(transformation_artifact)
 
