@@ -19,7 +19,7 @@ import mlflow
 from scipy.stats import ks_2samp, chi2_contingency
 from sklearn.model_selection import train_test_split
 
-class DataValidation:
+class ValidationComponent:
 
     """
         Class for Data Validation component.
