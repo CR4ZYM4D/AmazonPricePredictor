@@ -5,11 +5,13 @@ pandas
 numpy
 dill
 pyam
-pymongo
+pymongo[srv]
 ipykernel
 PyYAML
 nltk
 emoji
+fastapi
+uvicorn
 
 -e .
 
