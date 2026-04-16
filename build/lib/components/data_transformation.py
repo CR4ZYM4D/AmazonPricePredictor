@@ -170,7 +170,6 @@ class TransformationComponent():
             write_numpy_array(test_arr, self.test_path)
 
             save_as_pickle(preprocessor, self.imputer_object_path)
-            save_as_pickle(preprocessor, '/final_model/preprocessor.pkl')
 
             return TransformationArtifact(self.train_path, self.test_path, self.imputer_object_path)
 

@@ -12,6 +12,7 @@ nltk
 emoji
 fastapi
 uvicorn
+dagshub
 
 -e .
 

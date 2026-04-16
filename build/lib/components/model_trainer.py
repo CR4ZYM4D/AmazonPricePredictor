@@ -24,10 +24,6 @@ from sklearn.neighbors import KNeighborsRegressor
 from  sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor
 
-# dagshub import
-import dagshub
-dagshub.init(repo_owner='CR4ZYM4D', repo_name='AmazonPricePredictor', mlflow=True)
-
 class ModelTrainer():
 
     def __init__(self, train_config: ModelTrainerConfig, transformation_artifact: TransformationArtifact):
@@ -136,8 +132,6 @@ class ModelTrainer():
 
             logging.info(f"Writing model reports at file path {self.config.reports_path}")
             write_yaml(model_report, self.config.reports_path)
-
-            save_as_pickle(best_model, '/final_model/model.pkl')
 
             return ModelTrainerArtifact(self.config.trained_model_path, train_metrics, test_metrics)
 
