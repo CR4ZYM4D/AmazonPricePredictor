@@ -7,6 +7,9 @@ from exception.exception import ProjectError
 from entity.config_entity import (TrainingPipelineConfig, IngestionConfig, ValidationConfig, PreprocessingConfig, TransformationConfig, ModelTrainerConfig)
 from entity.artifact_entity import (IngestionArtifact, PreprocessingArtifact, ValidationArtifact, TransformationArtifact, ModelTrainerArtifact)
 
+# s3 import
+from cloud.s3_syncer import S3Sync
+
 # class imports
 from components.data_ingestion import IngestionComponent
 from components.data_preprocessing import PreProcessingComponent
@@ -28,6 +31,7 @@ class TrainingPipeline():
 
         try: 
             self.config: TrainingPipelineConfig = TrainingPipelineConfig()
+            self.s3_sync = S3Sync()
 
         except Exception as e:
             raise ProjectError(e, sys)
@@ -100,6 +104,32 @@ class TrainingPipeline():
 
             logging.info("Model Training Complete")
             return training_artifact
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    def sync_artifact_dir_to_s3(self):
+
+        """
+        
+        """
+
+        try: 
+            bucket_url = f"s3://{TRAINING_BUCKET_NAME}/artifacts/{self.config.timestamp}"
+            self.s3_sync.sync_folder_to_s3(folder = self.config.artifact_dir, url = bucket_url)
+            
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    def sync_model_to_s3(self):
+
+        """
+        
+        """
+
+        try:
+            bucket_url = f"s3;//{TRAINING_BUCKET_NAME}/final_models/{self.config.timestamp}"
+            self.s3_sync.sync_folder_to_s3(folder = self.training_config.model_trainer_dir, url = bucket_url)
+
         except Exception as e:
             raise ProjectError(e, sys)
         
