@@ -7,8 +7,9 @@ from exception.exception import ProjectError
 from entity.config_entity import (TrainingPipelineConfig, IngestionConfig, ValidationConfig, PreprocessingConfig, TransformationConfig, ModelTrainerConfig)
 from entity.artifact_entity import (IngestionArtifact, PreprocessingArtifact, ValidationArtifact, TransformationArtifact, ModelTrainerArtifact)
 
-# s3 import
+# s3 and constantimport
 from cloud.s3_syncer import S3Sync
+from constants.training_pipeline import TRAINING_BUCKET_NAME
 
 # class imports
 from components.data_ingestion import IngestionComponent

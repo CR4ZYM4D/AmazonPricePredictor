@@ -3,6 +3,8 @@ import os
 
 """ Common constants to be used throughout the project"""
 
+TRAINING_BUCKET_NAME = "amazon-price-predictor-bucket" 
+
 # split ratio
 SPLIT_RATIO = 0.2
 
