@@ -81,7 +81,7 @@ TRANSFORMED_TEST_FILE = "test.csv"
 KNN_IMPUTER_PARAMS = {
                     
                     "missing_values": np.nan,
-                    "n_neighbours": 5,
+                    "n_neighbors": 5,
                     "weights": "distance"
 
                  }

@@ -16,7 +16,7 @@ from dataclasses import asdict
 from sklearn.model_selection import GridSearchCV
 
 # fucntion and classes imports
-from ml_utils.metric.regression_metric import get_prediction_score
+from utils.ml_utils.metric.regression_metric import get_prediction_score
 
 def read_yaml(file_path: Path | str) -> dict: 
 
@@ -69,7 +69,9 @@ def write_yaml(data: dict, file_path: Path | str, overwrite: bool = False):
             raise(ProjectError("The specified file already exists!", sys))
         
         logging.info(f"Creating file {file_path}")
-        os.makedirs(file_path, exist_ok = True)
+
+        folder_path = file_path[ : file_path.rfind('/') + 1]
+        os.makedirs(folder_path, exist_ok = True)
         
         with open(file_path, 'w', encoding = 'utf-8') as f:
 
@@ -130,7 +132,9 @@ def write_numpy_array(array: np.ndarray, file_path: Path | str, overwrite: bool 
             raise(ProjectError("The specified file already exists!", sys))
         
         logging.info(f"Creating file {file_path}")
-        os.makedirs(file_path, exist_ok = True)
+
+        folder_path = file_path[ : file_path.rfind('/') + 1]
+        os.makedirs(folder_path, exist_ok = True)
         
         with open(file_path, 'wb') as f:
 
@@ -156,14 +160,15 @@ def read_pickle_object(file_path: Path | str):
         
         if os.path.exists(file_path):
             
-            object = pickle.load(file_path)
+            with open(file_path, 'rb') as f:
+                object = pickle.load(f)
 
-            if object is None:
-                logging.warning("pickled object is empty! no data has been read")
-                raise ProjectError("pickled object is empty! no data has been read", sys)
+                if object is None:
+                    logging.warning("pickled object is empty! no data has been read")
+                    raise ProjectError("pickled object is empty! no data has been read", sys)
 
-            logging.info(f"Successfully read the pickle object")
-            return object
+                logging.info(f"Successfully read the pickle object")
+                return object
         else: 
             raise ProjectError(f"The specified pickle object {file_path} does not exist! Please ensure the path is correct and try again", sys)
         
@@ -191,7 +196,9 @@ def save_as_pickle(object: Any, file_path: Path | str, overwrite: bool = False):
             raise(ProjectError("The specified file already exists!", sys))
         
         logging.info(f"Creating file {file_path}")
-        os.makedirs(file_path, exist_ok = True)
+        
+        folder_path = file_path[ : file_path.rfind('/') + 1]
+        os.makedirs(folder_path, exist_ok = True)
         
         with open(file_path, 'wb') as f:
 

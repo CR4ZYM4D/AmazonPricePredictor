@@ -127,7 +127,7 @@ class ModelTrainerConfig():
         self.tpo = training_pipeline_object
 
         # initialize models directory path
-        self.models_dir = os.path.join(self.tpo, train_p.MODEL_DIR_NAME)
+        self.models_dir = os.path.join(self.tpo.artifact_dir, train_p.MODEL_DIR_NAME)
             
         # initialize trained/failed models directory
         self.model_trainer_dir = os.path.join(self.models_dir, train_p.TRAINED_MODELS)
@@ -135,7 +135,7 @@ class ModelTrainerConfig():
         # initialize trained model file path
         self.trained_model_path = os.path.join(self.model_trainer_dir, train_p.MODEL_NAME)
 
-        self.reports_dir = os.path.join(self.tpo, train_p.REPORT_DIR_NAME)
+        self.reports_dir = os.path.join(self.tpo.artifact_dir, train_p.REPORT_DIR_NAME)
 
         # initialize reports path
         self.reports_path = os.path.join(self.reports_dir, train_p.MODEL_METRICS)

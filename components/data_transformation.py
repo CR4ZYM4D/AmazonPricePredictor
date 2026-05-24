@@ -31,7 +31,7 @@ class TransformationComponent():
         ***transformation_config***: The TransformationConfig class containing the transformed train/test file and transformation object file and directory paths. 
     """
 
-    def __init__(self, transformation_config: TransformationConfig, validation_artifact: ValidationArtifact):
+    def __init__(self, validation_artifact: ValidationArtifact, transformation_config: TransformationConfig = TransformationConfig()):
         
         try:
             logging.info("----- Initializing Data Transformation Component -----")
@@ -125,7 +125,7 @@ class TransformationComponent():
                                 ('categorical_pipeline', cat_pipeline, categorical_features)
 
                             ],
-                            remainder = 'passthrough'
+                            remainder = 'drop'
 
                            )
 
@@ -169,8 +169,8 @@ class TransformationComponent():
             write_numpy_array(train_arr, self.train_path)
             write_numpy_array(test_arr, self.test_path)
 
-            save_as_pickle(preprocessor, self.imputer_object_path)
-            save_as_pickle(preprocessor, '/final_model/preprocessor.pkl')
+            save_as_pickle(preprocessor, self.imputer_object_path, overwrite  = True)
+            save_as_pickle(preprocessor, './final_model/preprocessor.pkl', overwrite = True)
 
             return TransformationArtifact(self.train_path, self.test_path, self.imputer_object_path)
 

@@ -30,7 +30,7 @@ dagshub.init(repo_owner='CR4ZYM4D', repo_name='AmazonPricePredictor', mlflow=Tru
 
 class ModelTrainer():
 
-    def __init__(self, train_config: ModelTrainerConfig, transformation_artifact: TransformationArtifact):
+    def __init__(self, transformation_artifact: TransformationArtifact, train_config: ModelTrainerConfig = ModelTrainerConfig()):
 
         try:
             
@@ -64,6 +64,8 @@ class ModelTrainer():
             
             # init model params
             params: dict = {
+
+                        "linear_regression": {}, 
                         "k_neighbours_regressor": {
                                                     "n_neighbors": [3, 5, 7], 
                                                     "weights": ["uniform", "distance"],
@@ -137,7 +139,7 @@ class ModelTrainer():
             logging.info(f"Writing model reports at file path {self.config.reports_path}")
             write_yaml(model_report, self.config.reports_path)
 
-            save_as_pickle(best_model, '/final_model/model.pkl')
+            save_as_pickle(best_model, './final_model/model.pkl')
 
             return ModelTrainerArtifact(self.config.trained_model_path, train_metrics, test_metrics)
 

@@ -29,7 +29,7 @@ class ValidationComponent:
         ***validation_config***: The ValidationConfig class containing the valid/invalid and schema directory paths 
     """
 
-    def __init__(self, preprocessing_artifact: PreprocessingArtifact, validation_config: ValidationConfig):
+    def __init__(self, preprocessing_artifact: PreprocessingArtifact, validation_config: ValidationConfig = ValidationConfig()):
         
         try:
             
@@ -46,6 +46,7 @@ class ValidationComponent:
             self.preprocessing_artifact = preprocessing_artifact
             self.preprocessed_file_path = preprocessing_artifact.preprocessed_file_path
             self.processed_dataframe: pd.DataFrame = pd.read_csv(self.preprocessed_file_path)
+            self.processed_dataframe = self.processed_dataframe.dropna()
 
             logging.info("Reading column_schema.yaml file")
 
@@ -156,7 +157,7 @@ class ValidationComponent:
                 drift_report[column] = {
                     "p_value": float(p_value),
                     "degree_of_freedom": int(dof),
-                    "drift_detected": drift_detected,
+                    "drift_detected": bool(drift_detected),
                 }
 
             logging.info("COmpleted categorical drift analysis")
@@ -218,7 +219,7 @@ class ValidationComponent:
                     "p_value": float(getattr(test_result, "pvalue")),
                     "ks_statistic": float(getattr(test_result, "statistic")),
                     "drift_detected": bool(getattr(test_result, "pvalue") < threshold),
-                    "direction": getattr(test_result, "statistic_sign"),
+                    "direction": int(getattr(test_result, "statistic_sign")),
                     "location": float(getattr(test_result, "statistic_location"))
                 }
 
@@ -275,8 +276,8 @@ class ValidationComponent:
             numerical: dict = drift_report['numerical_columns']
 
             # get all column names from drift report
-            numerical_names: set = numerical.keys() 
-            categorical_names: set = categorical.keys()
+            numerical_names: set = set(numerical.keys()) 
+            categorical_names: set = set(categorical.keys())
 
             all_column_names: set = categorical_names.union(numerical_names)
 
@@ -314,9 +315,11 @@ class ValidationComponent:
             
             for column in categorical_names:
                 
+                if column not in critical_columns:
+                    non_crtical_categories += 1
+
                 if(categorical[column]['drift_detected'] == True and column not in critical_columns):    
                     drifting_categories += 1
-                    non_crtical_categories += 1
                     logging.info(f"Drfit detectd in {column} column of p-value eqaul to {categorical[column]['p_value']}")
 
             if(drifting_categories >= (int)(non_crtical_categories* 0.5)):
@@ -356,9 +359,10 @@ class ValidationComponent:
             write_yaml(validation_report, self.config.drift_report_file)
 
             if(validation_status):
+                os.makedirs(self.config.valid_data_dir, exist_ok= True)
                 logging.info(f"Data validation successful splitting data into train and test file paths and storing inside {self.config.valid_data_dir}")
 
-                train_file, test_file = train_test_split(self.processed_dataframe, self.config.split_ratio)
+                train_file, test_file = train_test_split(self.processed_dataframe, test_size = self.config.split_ratio, random_state = 42)
 
                 train_file.to_csv(self.config.train_file_path, index = False)    
 

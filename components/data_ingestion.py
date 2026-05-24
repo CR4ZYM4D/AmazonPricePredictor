@@ -30,7 +30,7 @@ class IngestionComponent():
         along with DB and collection anme and split ratio for train/test files
     """
 
-    def __init__(self, ingestion_config: IngestionConfig):
+    def __init__(self, ingestion_config: IngestionConfig = IngestionConfig()):
         
         try:
             

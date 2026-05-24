@@ -35,7 +35,7 @@ class PreProcessingComponent():
         ***preprocessing_config***: The PreprocessingConfig class containing the Feature store and preprocessed file path. 
     """    
 
-    def __init__(self, ingestion_artifact: IngestionArtifact, preprocessing_config: PreprocessingConfig) -> None:
+    def __init__(self, ingestion_artifact: IngestionArtifact, preprocessing_config: PreprocessingConfig = PreprocessingConfig()) -> None:
         
         try:
             
@@ -106,9 +106,12 @@ class PreProcessingComponent():
             # quantity would be as "value: x unit: " because we removed \n 
             unit_idx = s.rfind(" unit: ")
 
-            quantity = np.float32(s[value_idx+8: unit_idx])
+            if unit_idx == -1:
+                unit_idx = s.rfind(' unit')
 
-            unit = s[unit_idx + 7: ].strip() if unit_idx != -1 else 'ambiguous'
+            quantity = np.float32(s[value_idx+7: unit_idx])
+
+            unit = s[unit_idx + 6: ].strip() if unit_idx != -1 else 'ambiguous'
 
             return (quantity, unit)
         
@@ -132,7 +135,7 @@ class PreProcessingComponent():
             # dict for standardization of units      
             unit_map = {
                         # fluid once variations to fl_oz 
-                        'fl_oz': 'fl_oz', 'fl': 'fl_oz', 'floz': 'fl_oz', 'fluid': 'fl_oz',
+                        'fl oz': 'fl_oz', 'fl': 'fl_oz', 'floz': 'fl_oz', 'fluid': 'fl_oz',
                         # ml varaiations to ml
                         'ml': 'ml', 'milliliter': 'ml', 'millilitre': 'ml', 'l': 'l', 'liter': 'l',
                         # ounce variations to oz
