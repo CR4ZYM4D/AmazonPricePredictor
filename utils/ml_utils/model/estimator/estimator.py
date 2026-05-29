@@ -5,6 +5,7 @@ from logger.logger import logging
 # library import
 import os
 import sys
+import mlflow.pyfunc
 
 # library imports for type safety 
 import numpy as np
@@ -37,4 +38,21 @@ class PredictorModel:
         
         except Exception as e:
             raise ProjectError(e, sys)
+        
 
+class PredictorWrapper(mlflow.pyfunc.PythonModel):
+
+    def __init__(self, model: PredictorModel):
+
+        try:
+            self.model = model
+
+        except Exception as e:
+            raise ProjectError(e, sys)
+        
+    def predict(self, input: pd.DataFrame) -> np.ndarray:
+
+        try:
+            return self.model.predict(input)
+        except Exception as e:
+            raise ProjectError(e, sys)

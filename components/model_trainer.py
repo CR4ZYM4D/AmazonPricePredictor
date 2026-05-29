@@ -16,7 +16,7 @@ from entity.artifact_entity import TransformationArtifact, ModelTrainerArtifact
 from utils.main_utils.utils import save_as_pickle, read_pickle_object, read_numpy_array, evaluate_models, write_yaml
 from utils.ml_utils.metric.flatten_dict import flatten_dict
 from utils.ml_utils.metric.regression_metric import get_prediction_score
-from utils.ml_utils.model.estimator.estimator import PredictorModel
+from utils.ml_utils.model.estimator.estimator import PredictorModel, PredictorWrapper
 
 # model imports
 from sklearn.linear_model import LinearRegression
@@ -132,6 +132,19 @@ class ModelTrainer():
             preprocessor = read_pickle_object(self.preprocessor_path)
 
             predictor_model = PredictorModel(preprocessor, best_model)
+
+            wrapped_model = PredictorWrapper(model = predictor_model)
+
+            with mlflow.start_run() as run:
+                
+                logging.info("Logging model to MLflow")
+
+                mlflow.pyfunc.log_model(
+                    artifact_path=f"model_artifact/{best_model_name}",
+                    python_model=wrapped_model,
+                    pip_requirements=["scikit-learn", "pandas", "numpy"] 
+                )
+
 
             logging.info(f"saving best model in file path: {self.config.trained_model_path}")
             save_as_pickle(predictor_model, self.config.trained_model_path, overwrite = True)

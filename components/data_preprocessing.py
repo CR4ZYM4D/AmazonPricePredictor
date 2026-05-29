@@ -14,6 +14,10 @@ from nltk.corpus import stopwords
 import os
 import numpy as np
 import pandas as pd
+import mlflow
+import matplotlib.pyplot as plt
+import seaborn as sns
+from utils.main_utils.utils import read_yaml
 
 import sys
 
@@ -48,6 +52,8 @@ class PreProcessingComponent():
             self.config = preprocessing_config
             self.processed_file_directory = self.config.preprocessing_directory
             self.preprocessed_file_path = self.config.preprocessed_file_path
+
+            self.schema_file_path = self.config.schema_file_path
 
             # initialize set of stopwords to prevent re initiaslization for every string instance
             self.stopwords = set(stopwords.words('english'))
@@ -290,6 +296,34 @@ class PreProcessingComponent():
             logging.error(e)
             raise ProjectError(e, sys)
         
+    def plot_column_charts(self, df: pd.DataFrame): 
+
+        """
+        """
+
+        try:
+
+            all_columns = read_yaml(self.schema_file_path)
+            
+            columns = []
+
+            columns.append(all_columns['numerical_columns'])
+            columns.append(all_columns['categorical_columns'])
+
+            with mlflow.start_run(run_name='Preprocessing stage'): 
+                
+                for column in columns:
+                    
+                    fig,ax = plt.subplots() 
+                    sns.histplot(df[column], kde = True, ax = ax)
+                    ax.set_title(f"Distirbution of column {column}")
+
+                    mlflow.log_figure(fig, f"column_plots/{column}.png")
+
+
+        except Exception as e:
+            raise ProjectError(e, sys) 
+        
     def initiate_preprocessing(self) -> PreprocessingArtifact:
 
         """
@@ -316,6 +350,8 @@ class PreProcessingComponent():
             # normalize the quantities and extract any claims
             df = self.normalize_quantities(df)
             df = self.find_claims(df, 'catalog_content')
+
+            self.plot_column_charts(df)
 
             # store processed data
             self.store_processed_data(df)

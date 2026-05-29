@@ -53,6 +53,10 @@ class PreprocessingConfig():
         self.preprocessing_directory = os.path.join(self.feature_store, train_p.PREPROCESSING_DIRECTORY)
         self.preprocessed_file_path = os.path.join(self.preprocessing_directory, train_p.PREPROCESSED_FILE_NAME)
 
+        # schema file path
+        self.schema_dir_path = os.path.join(os.getcwd(), train_p.SCHEMA_DIR_PATH)
+        self.schema_file_path = os.path.join(self.schema_dir_path, train_p.SCHEMA_FILE_PATH)
+
         return
 
 class ValidationConfig():
