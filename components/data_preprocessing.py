@@ -307,8 +307,8 @@ class PreProcessingComponent():
             
             columns = []
 
-            columns.append(all_columns['numerical_columns'])
-            columns.append(all_columns['categorical_columns'])
+            columns.extend(all_columns['numerical_columns'])
+            columns.extend(all_columns['categorical_columns'])
 
             with mlflow.start_run(run_name='Preprocessing stage'): 
                 
