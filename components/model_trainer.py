@@ -129,22 +129,34 @@ class ModelTrainer():
             train_metrics = get_prediction_score(train_y_pred, train_y)
             test_metrics = get_prediction_score(test_y_pred, test_y)
 
+            train_dict: dict = {"train_mean_absolute_percent_error":  train_metrics.mean_absolute_percentage_error,
+                                "train_root_mean_squared_error":      train_metrics.root_mean_squared_error,
+                                "train_mean_squared_error":           train_metrics.mean_squared_error,
+                                "train_r2_score":                     train_metrics.r2_score}
+            
+            test_dict: dict = { "test_mean_absolute_percent_error":   test_metrics.mean_absolute_percentage_error,
+                                "test_root_mean_squared_error":      test_metrics.root_mean_squared_error,
+                                "test_mean_squared_error":           test_metrics.mean_squared_error,
+                                "test_r2_score":                     test_metrics.r2_score}
+
             preprocessor = read_pickle_object(self.preprocessor_path)
 
             predictor_model = PredictorModel(preprocessor, best_model)
 
             wrapped_model = PredictorWrapper(model = predictor_model)
 
-            with mlflow.start_run() as run:
+            with mlflow.start_run():
                 
                 logging.info("Logging model to MLflow")
 
                 mlflow.pyfunc.log_model(
-                    artifact_path=f"model_artifact/{best_model_name}",
+                    artifact_path=f"artifact_{best_model_name}",
                     python_model=wrapped_model,
                     pip_requirements=["scikit-learn", "pandas", "numpy"] 
                 )
 
+                mlflow.log_metrics(train_dict)
+                mlflow.log_metrics(test_dict)              
 
             logging.info(f"saving best model in file path: {self.config.trained_model_path}")
             save_as_pickle(predictor_model, self.config.trained_model_path, overwrite = True)

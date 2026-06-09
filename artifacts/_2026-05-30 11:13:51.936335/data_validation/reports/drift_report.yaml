@@ -1,0 +1,70 @@
+column_status:
+  columns_with_nan: []
+  mismatched_type_columns:
+  - is_organic
+  - is_gluten_free
+  - is_vegan
+  - is_kosher
+  - is_keto
+  - is_non_gmo
+  missing_columns: []
+drift_report:
+  categorical_columns:
+    is_gluten_free:
+      degree_of_freedom: 1
+      drift_detected: false
+      p_value: 1.0
+    is_keto:
+      degree_of_freedom: 1
+      drift_detected: false
+      p_value: 1.0
+    is_kosher:
+      degree_of_freedom: 1
+      drift_detected: false
+      p_value: 1.0
+    is_non_gmo:
+      degree_of_freedom: 1
+      drift_detected: false
+      p_value: 1.0
+    is_organic:
+      degree_of_freedom: 1
+      drift_detected: false
+      p_value: 1.0
+    is_vegan:
+      degree_of_freedom: 1
+      drift_detected: false
+      p_value: 1.0
+    standardized_unit:
+      degree_of_freedom: 7
+      drift_detected: false
+      p_value: 1.0
+    unit_category:
+      degree_of_freedom: 3
+      drift_detected: false
+      p_value: 1.0
+  numerical_columns:
+    log_normalized_quantity:
+      direction: 1
+      drift_detected: false
+      ks_statistic: 0.0
+      location: 0.0
+      p_value: 1.0
+    price:
+      direction: 1
+      drift_detected: false
+      ks_statistic: 0.0
+      location: 0.13
+      p_value: 1.0
+    quantity:
+      direction: 1
+      drift_detected: false
+      ks_statistic: 0.0
+      location: 0.0
+      p_value: 1.0
+    total_normalized_quantity:
+      direction: 1
+      drift_detected: false
+      ks_statistic: 0.0
+      location: 0.0
+      p_value: 1.0
+validation_status: true

@@ -315,7 +315,7 @@ class PreProcessingComponent():
                 for column in columns:
                     
                     fig,ax = plt.subplots() 
-                    sns.histplot(df[column], kde = True, ax = ax)
+                    sns.histplot(df[column], kde = False, ax = ax)
                     ax.set_title(f"Distirbution of column {column}")
 
                     mlflow.log_figure(fig, f"column_plots/{column}.png")

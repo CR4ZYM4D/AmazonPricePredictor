@@ -53,11 +53,13 @@ This project demonstrates command over the **entire ML stack**: from data pipeli
 ┌─────────────────────────────────────────────────────────────┐
 │                     Training Pipeline                       │
 │                                                             │
-│  MongoDB Atlas ──► Data Ingestion ──► Schema Validation     │
-│                          │                                  │
+│  MongoDB Atlas ──► Data Ingestion ──► Pre-Processing        │
+│                          │                                  |
+|                    Schema Validation                        |
+|                          |                                  |
 │                   Train/Test Split                          │
 │                          │                                  │
-│               Feature Engineering (NLP + Numeric)           │
+│               Feature Transformation (NLP + Numeric)        │
 │                          │                                  │
 │                    Model Training  ◄── Constants/Config     │
 │                          │                                  │
@@ -94,6 +96,7 @@ AmazonPricePredictor/
 │
 ├── components/               # Pipeline stage implementations
 │   ├── data_ingestion.py
+|   ├── data_preprocessing.py 
 │   ├── data_validation.py
 │   ├── data_transformation.py
 │   ├── model_trainer.py
@@ -208,14 +211,16 @@ curl -X GET "http://localhost:8000/predict" \
 ### Data Ingestion
 Connects to MongoDB Atlas over TLS, queries the target collection, and exports it as a structured DataFrame — with custom logging at every step.
 
+### Data Pre-Processing
+- Text-based feature, quantity and unit extraction via NLTK tokenization and emoji normalization
+- Encoding of categorical product metadata
+
 ### Data Validation
 Validates incoming data against a YAML schema (`schema/`) — column names, data types, and required fields — before any transformation runs.
 
 ### Feature Transformation
 A scikit-learn `Pipeline` applies:
 - Numeric imputation and scaling
-- Text-based feature extraction via NLTK tokenization and emoji normalization
-- Encoding of categorical product metadata
 
 ### Model Training
 Trains a regression estimator wrapped in a `PredictorModel` class. All runs are logged to MLflow via DagsHub — parameters, metrics, and model artifacts are versioned.
@@ -229,7 +234,7 @@ The trained model is evaluated on the held-out test set against an acceptance th
 
 All training runs are tracked on **DagsHub + MLflow**:
 
-- **Metrics:** RMSE, MAE, R²
+- **Metrics:** RMSE, MAE, MAPE, R²
 - **Parameters:** Model hyperparameters, transformation settings
 - **Artifacts:** Preprocessor pickle, trained model pickle
 

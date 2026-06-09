@@ -50,9 +50,9 @@ class PredictorWrapper(mlflow.pyfunc.PythonModel):
         except Exception as e:
             raise ProjectError(e, sys)
         
-    def predict(self, input: pd.DataFrame) -> np.ndarray:
+    def predict(self, model_input: pd.DataFrame) -> np.ndarray:
 
         try:
-            return self.model.predict(input)
+            return self.model.predict(model_input)
         except Exception as e:
             raise ProjectError(e, sys)
