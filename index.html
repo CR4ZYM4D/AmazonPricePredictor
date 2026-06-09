@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Amazon Price Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0a0a0f;
+      --surface: #12121a;
+      --card:    #13131c;
+      --border:  #1e1e2e;
+      --accent:  #ff6b35;
+      --accent2: #ffd166;
+      --text:    #e8e8f0;
+      --muted:   #6e6e8a;
+      --success: #06d6a0;
+      --error:   #ef233c;
+      --mono:    'JetBrains Mono', monospace;
+      --sans:    'Syne', sans-serif;
+      --r:       6px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    /* orange grid overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,107,53,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,107,53,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* ── HEADER ──────────────────────────────────────── */
+    header {
+      position: relative; z-index: 10;
+      padding: 2.5rem 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo { display: flex; align-items: center; gap: .75rem; }
+    .logo-icon {
+      width: 40px; height: 40px; border-radius: 4px;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .logo-text { font-size: 1.1rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+    .logo-text span { color: var(--accent); }
+    .logo-sub { font-family: var(--mono); font-size: .65rem; color: var(--muted); letter-spacing: .05em; }
+
+    nav { display: flex; gap: 2rem; }
+    nav a {
+      font-family: var(--mono); font-size: .8rem; color: var(--muted);
+      text-decoration: none; letter-spacing: .05em; transition: color .2s;
+    }
+    nav a:hover { color: var(--accent); }
+
+    /* ── HERO ────────────────────────────────────────── */
+    .hero {
+      position: relative; z-index: 5;
+      padding: 5rem 3rem 3rem;
+      max-width: 1100px; margin: 0 auto;
+      animation: fadeUp .5s ease both;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      font-family: var(--mono); font-size: .7rem;
+      color: var(--accent); border: 1px solid var(--accent);
+      padding: .25rem .75rem; border-radius: 2px;
+      letter-spacing: .1em; margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      font-weight: 800; letter-spacing: -.03em; line-height: 1;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 em {
+      font-style: normal; color: var(--accent);
+      position: relative;
+    }
+    .hero h1 em::after {
+      content: ''; position: absolute;
+      bottom: -4px; left: 0; right: 0;
+      height: 3px; background: var(--accent); opacity: .4;
+    }
+
+    .hero-desc {
+      color: var(--muted); font-size: 1rem; max-width: 520px;
+      line-height: 1.7; margin-bottom: 2rem;
+    }
+
+    /* schema pills */
+    .schema-row { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 2.5rem; }
+    .schema-pill {
+      display: inline-flex; align-items: center; gap: .4rem;
+      font-family: var(--mono); font-size: .7rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 4px; padding: .35rem .75rem; color: var(--muted);
+      transition: border-color .2s, color .2s;
+    }
+    .schema-pill:hover { border-color: var(--accent); color: var(--text); }
+    .sdot { width: 6px; height: 6px; border-radius: 50%; }
+    .sdot-id    { background: var(--accent2); }
+    .sdot-cat   { background: var(--accent); }
+    .sdot-img   { background: #a78bfa; }
+    .sdot-price { background: var(--success); }
+
+    /* stats row */
+    .stats-row { display: flex; gap: 2.5rem; margin-bottom: 3rem; flex-wrap: wrap; }
+    .stat { display: flex; flex-direction: column; gap: .2rem; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--accent2); font-family: var(--mono); }
+    .stat-label { font-size: .7rem; color: var(--muted); letter-spacing: .05em; font-family: var(--mono); }
+
+    /* ── MAIN GRID ───────────────────────────────────── */
+    .main-grid {
+      position: relative; z-index: 5;
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 3rem 4rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+    }
+
+    /* ── PANEL ───────────────────────────────────────── */
+    .panel {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 2rem;
+      position: relative; overflow: hidden;
+      animation: fadeUp .45s ease both;
+    }
+    .panel:nth-child(2) { animation-delay: .08s; }
+    .panel::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .panel-title {
+      font-family: var(--mono); font-size: .7rem;
+      color: var(--accent); letter-spacing: .1em;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .panel-title::before { content: '//'; color: var(--muted); }
+    .panel-title::after  { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── FIELDS ──────────────────────────────────────── */
+    .field { margin-bottom: 1.25rem; }
+
+    label {
+      display: block; font-family: var(--mono);
+      font-size: .65rem; color: var(--muted); letter-spacing: .06em;
+      margin-bottom: .45rem;
+    }
+    label .req  { color: var(--accent); margin-left: 2px; }
+    label .hint { opacity: .6; font-size: .6rem; margin-left: .4rem; }
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r);
+      color: var(--text); font-family: var(--mono); font-size: .8rem;
+      padding: .65rem .85rem; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      resize: vertical;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255,107,53,.15);
+    }
+    textarea { min-height: 96px; line-height: 1.6; }
+
+    /* image preview strip */
+    .img-preview {
+      width: 100%; height: 110px; object-fit: contain;
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 var(--r) var(--r);
+      display: none;
+    }
+    .img-preview.show { display: block; }
+
+    /* char count */
+    .field-foot {
+      display: flex; justify-content: flex-end;
+      font-family: var(--mono); font-size: .6rem;
+      color: var(--muted); margin-top: .3rem;
+    }
+    .char-count.warn { color: var(--accent2); }
+    .char-count.over { color: var(--error); }
+
+    /* ── DROP ZONE ───────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: var(--r);
+      padding: 2.5rem 1.5rem; text-align: center;
+      cursor: pointer; transition: all .2s; margin-bottom: .75rem;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent); background: rgba(255,107,53,.04);
+    }
+    .dz-icon { font-size: 2rem; margin-bottom: .75rem; opacity: .4; }
+    .dz-text { font-family: var(--mono); font-size: .75rem; color: var(--muted); line-height: 1.8; }
+    .dz-text span { color: var(--accent); }
+    #csv-input { display: none; }
+    .dz-name { font-family: var(--mono); font-size: .7rem; color: var(--accent2); min-height: 1rem; }
+
+    /* ── BUTTONS ─────────────────────────────────────── */
+    .btn-group { display: flex; flex-direction: column; gap: .75rem; margin-top: 1.25rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      font-family: var(--mono); font-size: .8rem; font-weight: 600;
+      letter-spacing: .05em; padding: .72rem 1.4rem;
+      border-radius: var(--r); border: none; cursor: pointer;
+      width: 100%; transition: all .18s;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+
+    .btn-primary  { background: var(--accent); color: var(--bg); }
+    .btn-primary:not(:disabled):hover  { background: #ff8455; transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    }
+    .btn-ghost:not(:disabled):hover { background: rgba(255,107,53,.1); }
+
+    .btn-success  { background: var(--success); color: var(--bg); }
+    .btn-success:not(:disabled):hover { opacity: .88; transform: translateY(-1px); }
+
+    .btn-muted {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+    }
+    .btn-muted:not(:disabled):hover { border-color: var(--muted); color: var(--text); }
+
+    /* spinner */
+    .spin {
+      display: none; width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,.2); border-top-color: var(--bg);
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    .btn.loading .spin { display: block; }
+    .btn.loading .ico  { display: none; }
+
+    /* ── SECTION DIVIDER ─────────────────────────────── */
+    .divider {
+      font-family: var(--mono); font-size: .65rem;
+      color: var(--muted); letter-spacing: .08em;
+      margin: 1.5rem 0 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── TRAIN STATUS ────────────────────────────────── */
+    .train-status {
+      display: none; margin-top: 1rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: .9rem 1.1rem;
+    }
+    .train-status.show { display: block; }
+    .train-label { font-family: var(--mono); font-size: .65rem; color: var(--muted); margin-bottom: .5rem; }
+    .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .4s;
+    }
+    .progress-fill.indeterminate {
+      width: 40% !important;
+      animation: prog-slide 1.1s ease-in-out infinite;
+    }
+
+    /* ── RESULTS SECTION ─────────────────────────────── */
+    #results-section {
+      display: none; position: relative; z-index: 5;
+      max-width: 1100px; margin: 0 auto; padding: 0 3rem 4rem;
+      animation: fadeUp .35s ease both;
+    }
+
+    .result-header {
+      background: var(--card); border: 1px solid var(--border);
+      border-bottom: none; border-radius: var(--r) var(--r) 0 0;
+      padding: .9rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .result-title { font-family: var(--mono); font-size: .7rem; color: var(--accent); letter-spacing: .08em; }
+    .result-meta  { font-family: var(--mono); font-size: .65rem; color: var(--muted); }
+    .result-actions { display: flex; gap: .5rem; }
+    .result-actions .btn { width: auto; padding: .35rem .9rem; font-size: .65rem; }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 0 0 var(--r) var(--r);
+      overflow: hidden; font-family: var(--mono); font-size: .72rem;
+    }
+    th {
+      background: rgba(255,107,53,.07); color: var(--accent);
+      padding: .7rem 1rem; text-align: left;
+      font-weight: 700; letter-spacing: .06em; white-space: nowrap;
+    }
+    td {
+      padding: .6rem 1rem; border-top: 1px solid var(--border);
+      color: var(--muted); max-width: 260px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    tr:hover td { background: rgba(255,255,255,.02); color: var(--text); }
+    td.price-cell { color: var(--success); font-weight: 700; }
+
+    /* ── TOAST ───────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 9999;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: .9rem 1.25rem;
+      font-family: var(--mono); font-size: .72rem; max-width: 360px;
+      transform: translateY(120%); transition: transform .3s ease;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    #toast.show { transform: translateY(0); }
+    #toast.success { border-left: 3px solid var(--success); }
+    #toast.error   { border-left: 3px solid var(--error); }
+    #toast.info    { border-left: 3px solid var(--accent); }
+    #toast-msg { color: var(--text); line-height: 1.5; }
+
+    /* ── FOOTER ──────────────────────────────────────── */
+    footer {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 1.25rem 3rem;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono); font-size: .62rem; color: var(--muted);
+      display: flex; justify-content: space-between;
+    }
+
+    /* ── ANIMATIONS ──────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes prog-slide {
+      0%   { transform: translateX(-200%); }
+      100% { transform: translateX(400%); }
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 760px) {
+      header { padding: 1.5rem; }
+      .hero  { padding: 3rem 1.5rem 2rem; }
+      .main-grid { grid-template-columns: 1fr; padding: 0 1.5rem 3rem; }
+      footer { padding: 1rem 1.5rem; flex-direction: column; gap: .4rem; }
+      #results-section { padding: 0 1.5rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">📦</div>
+    <div>
+      <div class="logo-text">Amazon<span>Price</span>Predictor</div>
+      <div class="logo-sub">ML · FASTAPI · MONGODB</div>
+    </div>
+  </div>
+  <nav>
+    <a href="/docs">API Docs</a>
+    <a href="#" id="nav-train">Run Training</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">▸ AMAZON ML CHALLENGE 2025</div>
+  <h1>Predict product<br/><em>prices from text</em></h1>
+  <p class="hero-desc">
+    Submit catalog content and an image link to store in MongoDB, trigger the
+    training pipeline, and get price predictions — SMAPE optimised, 75k samples.
+  </p>
+
+  <div class="schema-row">
+    <div class="schema-pill"><span class="sdot sdot-id"></span>sample_id</div>
+    <div class="schema-pill"><span class="sdot sdot-cat"></span>catalog_content</div>
+    <div class="schema-pill"><span class="sdot sdot-img"></span>image_link</div>
+    <div class="schema-pill"><span class="sdot sdot-price"></span>price (target)</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <span class="stat-num">75k</span>
+      <span class="stat-label">TRAINING SAMPLES</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">3</span>
+      <span class="stat-label">INPUT COLUMNS</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">SMAPE</span>
+      <span class="stat-label">EVAL METRIC</span>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN PANELS -->
+<div class="main-grid">
+
+  <!-- LEFT: Single Entry -->
+  <div class="panel">
+    <div class="panel-title">INSERT RECORD → MONGODB</div>
+
+    <div class="field">
+      <label for="f-id">SAMPLE_ID <span class="req">*</span></label>
+      <input type="text" id="f-id" placeholder="e.g. 8765432"/>
+    </div>
+
+    <div class="field">
+      <label for="f-catalog">CATALOG_CONTENT <span class="req">*</span> <span class="hint">title + description + IPQ</span></label>
+      <textarea id="f-catalog"
+        placeholder="e.g. boAt Rockerz 450 Bluetooth Headphone with Mic. 40mm drivers, 15hr battery, foldable design. Pack size: 1 unit."
+        oninput="updateCharCount(this,'cc-count',4096)"></textarea>
+      <div class="field-foot">
+        <span class="char-count" id="cc-count">0 / 4096</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-img">IMAGE_LINK <span class="req">*</span> <span class="hint">Amazon CDN URL</span></label>
+      <input type="url" id="f-img"
+        placeholder="https://m.media-amazon.com/images/I/71XfHPR36-L.jpg"
+        oninput="previewImg(this)"/>
+      <img class="img-preview" id="img-preview" alt="preview"
+        onerror="this.classList.remove('show')"
+        onload="this.classList.add('show')"/>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="insert-btn" onclick="insertSingle()">
+        <span class="ico">⬆</span>
+        <div class="spin"></div>
+        INSERT INTO MONGODB
+      </button>
+      <button class="btn btn-muted" onclick="clearForm()">
+        <span class="ico">✕</span>
+        <div class="spin"></div>
+        CLEAR FORM
+      </button>
+    </div>
+  </div>
+
+  <!-- RIGHT: CSV + Pipeline -->
+  <div class="panel">
+    <div class="panel-title">BULK UPLOAD &amp; PREDICT</div>
+
+    <div class="drop-zone" id="drop-zone"
+      onclick="document.getElementById('csv-input').click()"
+      ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+      <div class="dz-icon">📂</div>
+      <div class="dz-text">
+        Drop <code>train.csv</code> or <code>test.csv</code> here<br/>
+        or <span>click to browse</span>
+      </div>
+    </div>
+    <input type="file" id="csv-input" accept=".csv" onchange="onFileSelect(this)"/>
+    <div class="dz-name" id="dz-name">No file selected</div>
+
+    <div class="btn-group">
+      <button class="btn btn-ghost" id="bulk-btn" onclick="bulkInsert()">
+        <span class="ico">📥</span>
+        <div class="spin"></div>
+        BULK INSERT → MONGODB
+      </button>
+      <button class="btn btn-primary" id="predict-btn" onclick="runPredict()">
+        <span class="ico">⚡</span>
+        <div class="spin"></div>
+        PREDICT PRICES
+      </button>
+    </div>
+
+    <div class="divider">PIPELINE</div>
+
+    <div class="btn-group">
+      <button class="btn btn-success" id="train-btn" onclick="triggerTrain()">
+        <span class="ico">🔁</span>
+        <div class="spin"></div>
+        TRIGGER TRAINING PIPELINE
+      </button>
+      <button class="btn btn-ghost" id="ingest-btn" onclick="triggerIngest()">
+        <span class="ico">🗄</span>
+        <div class="spin"></div>
+        INGEST ONLY (MONGO → CSV)
+      </button>
+    </div>
+
+    <div class="train-status" id="train-status">
+      <div class="train-label" id="train-label">RUNNING...</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-grid -->
+
+<!-- RESULTS -->
+<div id="results-section">
+  <div class="result-header">
+    <span class="result-title">// PREDICTION RESULTS</span>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <span class="result-meta" id="result-count"></span>
+      <div class="result-actions">
+        <button class="btn btn-ghost" onclick="downloadCSV()">⬇ CSV</button>
+        <button class="btn btn-muted" onclick="clearResults()">✕</button>
+      </div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead id="tbl-head"></thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <span>CR4ZYM4D / AmazonPricePredictor</span>
+  <span>FastAPI · MongoDB · scikit-learn · MLflow · Docker</span>
+</footer>
+
+<div id="toast"><div id="toast-msg"></div></div>
+
+<script>
+/* ── TOAST ─────────────────────────────────────────────── */
+let _tt;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => { el.className = ''; }, 4500);
+}
+
+/* ── LOADING ────────────────────────────────────────────── */
+function setLoading(id, on) {
+  const b = document.getElementById(id);
+  b.disabled = on;
+  on ? b.classList.add('loading') : b.classList.remove('loading');
+}
+
+/* ── CHAR COUNT ─────────────────────────────────────────── */
+function updateCharCount(el, id, max) {
+  const n = el.value.length;
+  const span = document.getElementById(id);
+  span.textContent = `${n} / ${max}`;
+  span.className = 'char-count' + (n > max ? ' over' : n > max * .85 ? ' warn' : '');
+}
+
+/* ── IMAGE PREVIEW ──────────────────────────────────────── */
+function previewImg(input) {
+  const p = document.getElementById('img-preview');
+  const url = input.value.trim();
+  p.classList.remove('show');
+  if (url.startsWith('http')) { p.src = url; }
+}
+
+/* ── DRAG & DROP ────────────────────────────────────────── */
+function dzOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function dzLeave()  { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function dzDrop(e) {
+  e.preventDefault(); dzLeave();
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('csv-input').files = dt.files;
+    document.getElementById('dz-name').textContent = `▸ ${file.name}  (${(file.size/1024).toFixed(1)} KB)`;
+  } else {
+    toast('Please drop a .csv file', 'error');
+  }
+}
+function onFileSelect(input) {
+  const file = input.files[0];
+  if (file) document.getElementById('dz-name').textContent = `▸ ${file.name}  (${(file.size/1024).toFixed(1)} KB)`;
+}
+
+/* ── INSERT SINGLE ──────────────────────────────────────── */
+async function insertSingle() {
+  const id      = document.getElementById('f-id').value.trim();
+  const catalog = document.getElementById('f-catalog').value.trim();
+  const img     = document.getElementById('f-img').value.trim();
+  if (!id || !catalog || !img) { toast('All three fields are required', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('sample_id', id);
+  fd.append('catalog_content', catalog);
+  fd.append('image_link', img);
+
+  setLoading('insert-btn', true);
+  try {
+    const res  = await fetch('/upload', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (res.ok) { toast(`✓ Inserted — _id: ${json.id}`, 'success'); clearForm(); }
+    else        { toast(`Error: ${json.detail || 'Insert failed'}`, 'error'); }
+  } catch (e) { toast(`Network error: ${e.message}`, 'error'); }
+  setLoading('insert-btn', false);
+}
+
+function clearForm() {
+  ['f-id', 'f-catalog', 'f-img'].forEach(id => document.getElementById(id).value = '');
+  const p = document.getElementById('img-preview');
+  p.classList.remove('show'); p.src = '';
+  document.getElementById('cc-count').textContent = '0 / 4096';
+}
+
+/* ── BULK INSERT ────────────────────────────────────────── */
+async function bulkInsert() {
+  const file = document.getElementById('csv-input').files[0];
+  if (!file) { toast('Select a CSV file first', 'error'); return; }
+  const fd = new FormData(); fd.append('file', file);
+  setLoading('bulk-btn', true);
+  try {
+    const res  = await fetch('/upload-csv', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (res.ok) toast(`✓ Inserted ${json.inserted_count} records`, 'success');
+    else        toast(`Error: ${json.detail || 'Upload failed'}`, 'error');
+  } catch (e) { toast(`Network error: ${e.message}`, 'error'); }
+  setLoading('bulk-btn', false);
+}
+
+/* ── PREDICT ────────────────────────────────────────────── */
+let _predictions = [];
+async function runPredict() {
+  const file = document.getElementById('csv-input').files[0];
+  if (!file) { toast('Select a CSV file first', 'error'); return; }
+  const fd = new FormData(); fd.append('file', file);
+  setLoading('predict-btn', true);
+  try {
+    const res = await fetch('/predict', { method: 'POST', body: fd });
+    if (!res.ok) { const j = await res.json(); toast(`Error: ${j.detail || 'Failed'}`, 'error'); setLoading('predict-btn', false); return; }
+    const records = await res.json();
+    _predictions = records;
+    renderTable(records);
+    toast(`✓ ${records.length} predictions returned`, 'success');
+  } catch (e) { toast(`Network error: ${e.message}`, 'error'); }
+  setLoading('predict-btn', false);
+}
+
+function renderTable(records) {
+  if (!records.length) return;
+  const cols = Object.keys(records[0]);
+  document.getElementById('tbl-head').innerHTML =
+    '<tr>' + cols.map(c => `<th>${c.toUpperCase()}</th>`).join('') + '</tr>';
+  document.getElementById('tbl-body').innerHTML = records.map(row =>
+    '<tr>' + cols.map(c => {
+      const isPrice = c.toLowerCase() === 'price';
+      const v = row[c] ?? '';
+      return `<td class="${isPrice ? 'price-cell' : ''}" title="${v}">${v}</td>`;
+    }).join('') + '</tr>'
+  ).join('');
+  document.getElementById('result-count').textContent = `${records.length} rows`;
+  const sec = document.getElementById('results-section');
+  sec.style.display = 'block';
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearResults() {
+  _predictions = [];
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('tbl-head').innerHTML = '';
+  document.getElementById('tbl-body').innerHTML = '';
+}
+
+function downloadCSV() {
+  if (!_predictions.length) return;
+  const cols = Object.keys(_predictions[0]);
+  const csv = [cols.join(','), ..._predictions.map(r =>
+    cols.map(c => `"${(r[c] ?? '').toString().replace(/"/g, '""')}"`).join(',')
+  )].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'predictions.csv'; a.click();
+}
+
+/* ── PIPELINE ───────────────────────────────────────────── */
+function showStatus(label) {
+  document.getElementById('train-label').textContent = label;
+  document.getElementById('progress-fill').className = 'progress-fill indeterminate';
+  document.getElementById('train-status').classList.add('show');
+}
+function hideStatus(label, done) {
+  document.getElementById('train-label').textContent = label;
+  const fill = document.getElementById('progress-fill');
+  fill.classList.remove('indeterminate');
+  fill.style.width = done ? '100%' : '0%';
+  if (done) setTimeout(() => document.getElementById('train-status').classList.remove('show'), 2000);
+}
+
+async function triggerTrain() {
+  setLoading('train-btn', true);
+  showStatus('RUNNING — DataIngestion → Transform → Train → Eval...');
+  toast('Training started — this may take several minutes', 'info');
+  try {
+    const res = await fetch('/train');
+    if (res.ok) { hideStatus('PIPELINE COMPLETE ✓', true); toast('✓ Training complete — model updated', 'success'); }
+    else         { hideStatus('PIPELINE FAILED', false);   toast('Training failed — check server logs', 'error'); }
+  } catch (e) { hideStatus('CONNECTION ERROR', false); toast(`Network error: ${e.message}`, 'error'); }
+  setLoading('train-btn', false);
+}
+
+async function triggerIngest() {
+  setLoading('ingest-btn', true);
+  showStatus('INGESTING — MongoDB → train.csv / test.csv...');
+  try {
+    const res  = await fetch('/ingest');
+    const json = await res.json();
+    if (res.ok) { hideStatus('INGESTION COMPLETE ✓', true); toast(`✓ Done — train: ${json.train_file}`, 'success'); }
+    else        { hideStatus('INGESTION FAILED', false);     toast(`Error: ${json.detail || 'Failed'}`, 'error'); }
+  } catch (e) { hideStatus('CONNECTION ERROR', false); toast(`Network error: ${e.message}`, 'error'); }
+  setLoading('ingest-btn', false);
+}
+
+/* ── NAV SHORTCUT ───────────────────────────────────────── */
+document.getElementById('nav-train').addEventListener('click', e => {
+  e.preventDefault();
+  triggerTrain();
+});
+</script>
+</body>
+</html>
