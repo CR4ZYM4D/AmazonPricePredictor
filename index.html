@@ -603,16 +603,19 @@ async function insertSingle() {
   const img     = document.getElementById('f-img').value.trim();
   if (!id || !catalog || !img) { toast('All three fields are required', 'error'); return; }
 
-  const fd = new FormData();
-  fd.append('sample_id', id);
-  fd.append('catalog_content', catalog);
-  fd.append('image_link', img);
-
   setLoading('insert-btn', true);
   try {
-    const res  = await fetch('/upload', { method: 'POST', body: fd });
+    const res  = await fetch('/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sample_id:       parseInt(id) || null,
+        catalog_content: catalog,
+        image_link:      img
+      })
+    });
     const json = await res.json();
-    if (res.ok) { toast(`✓ Inserted — _id: ${json.id}`, 'success'); clearForm(); }
+    if (res.ok) { toast(`✓ Inserted — _id: ${json.inserted_id}`, 'success'); clearForm(); }
     else        { toast(`Error: ${json.detail || 'Insert failed'}`, 'error'); }
   } catch (e) { toast(`Network error: ${e.message}`, 'error'); }
   setLoading('insert-btn', false);

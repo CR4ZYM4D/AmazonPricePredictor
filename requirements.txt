@@ -13,6 +13,7 @@ emoji
 fastapi
 uvicorn
 dagshub
+python-multipart
 
 -e .
 
