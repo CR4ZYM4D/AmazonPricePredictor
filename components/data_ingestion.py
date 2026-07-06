@@ -7,18 +7,21 @@ from exception.exception import ProjectError
 from entity.config_entity import IngestionConfig
 from entity.artifact_entity import IngestionArtifact
 
+from constants.training_pipeline import INGESTED_FILE_NAME
+
 # library and function imports
 import os
 import numpy as np
 import pandas as pd
 import pymongo
+import certifi 
 from dotenv import load_dotenv 
 
 import sys
 
 # load env variables and get DB URL
 load_dotenv()
-MONGO_DB_URL = os.getenv("DB_URL")
+MONGO_DB_URL = os.getenv("MONGODB_URL")
 
 class IngestionComponent():
 
@@ -35,13 +38,15 @@ class IngestionComponent():
         try:
             
             self.config = ingestion_config
+            self.directory_path = self.config.ingestion_dir
+            self.ingested_file_path = os.path.join(self.directory_path, INGESTED_FILE_NAME)
             logging.info("----- Initializing Data Ingestion Component -----")
 
         except Exception as e:
             logging.error(e)
             raise ProjectError(e, sys)
         
-    def export_collection_as_df(self):
+    def export_collection_as_df(self, only_new: bool = True):
 
         """
             Function to connect to the Database using MongoClient and get the required collection\n 
@@ -57,14 +62,25 @@ class IngestionComponent():
 
             # connect to DB using DB URL
             logging.info(f"Attempting connecting to Database {db_name} and extracting collection {collection_name}")
-            self.mongo_client = pymongo.MongoClient(MONGO_DB_URL)
+            self.mongo_client = pymongo.MongoClient(MONGO_DB_URL, tls=True, tlsCAFile=certifi.where())
 
             # get collection from DB
             collection = self.mongo_client[db_name][collection_name]
 
             # convert into pandas DF
             logging.info("Connection successful. Extracting collection and converting to dataframe")
-            df = pd.DataFrame(list(collection.find()))
+
+            # query to get the new data
+            query  = {"ingested": False} if only_new else {}
+            cursor = collection.find(query)
+            df = pd.DataFrame(list(cursor))
+
+            if df.empty:
+                return df
+
+            if only_new:
+                collection.update_many({"ingested": False}, {"$set": {"ingested": True}})
+
 
             # remove _id column if made by default
             if '_id' in df.columns.to_list():
@@ -90,15 +106,13 @@ class IngestionComponent():
 
         try:
             
-            path = self.config.ingested_dir
-            
-            if not os.path.exists(path):
-                logging.info(f"Creating Directory {path}") 
-                os.makedirs(path)
+            if not os.path.exists(self.directory_path):
+                logging.info(f"Creating Directory {self.directory_path}") 
+                os.makedirs(self.directory_path)
 
             # save collection as a csv for training/testing
-            df.to_csv(self.config.ingested_dir)
-            logging.info(f"Saved Dataframe as CSV in directory {path}")
+            df.to_csv(self.ingested_file_path)
+            logging.info(f"Saved Dataframe as CSV in directory {self.ingested_file_path}")
 
             return
 
@@ -121,7 +135,7 @@ class IngestionComponent():
 
             self.export_to_ingested_data(df)
 
-            return IngestionArtifact(self.config.ingested_dir)
+            return IngestionArtifact(self.ingested_file_path)
 
         except Exception as e:
             logging.error(e)

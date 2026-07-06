@@ -153,10 +153,10 @@ async def predict(request: Request):
         df = pipeline.get_processed_dataframe()
 
         y_pred = loaded_model.predict(df)
-        df['predicted_price'] = y_pred
+        df[TARGET_COLUMN] = y_pred
 
         return Response(
-            df[['sample_id', 'predicted_price']].to_dict(orient="records")
+            df[['sample_id', TARGET_COLUMN]].to_dict(orient="records")
         )
 
     except Exception as e:

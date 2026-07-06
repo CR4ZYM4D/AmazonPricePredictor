@@ -34,7 +34,6 @@ class IngestionConfig():
 
         # data ingestion and ingested data directory paths
         self.ingestion_dir = os.path.join(self.tpo.artifact_dir, train_p.INGESTION_DIR_NAME)
-        self.ingested_dir = os.path.join(self.ingestion_dir, train_p.INGESTED_DIR_NAME)
 
         return
     
