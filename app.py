@@ -155,9 +155,7 @@ async def predict(request: Request):
         y_pred = loaded_model.predict(df)
         df[TARGET_COLUMN] = y_pred
 
-        return Response(
-            df[['sample_id', TARGET_COLUMN]].to_dict(orient="records")
-        )
+        return df[['sample_id', TARGET_COLUMN]].to_dict(orient="records")
 
     except Exception as e:
         logging.error(e)

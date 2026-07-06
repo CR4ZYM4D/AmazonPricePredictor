@@ -36,7 +36,7 @@ TEST_FILE_NAME = 'test.csv'
 
 INGESTION_DIR_NAME = 'data_ingestion'
 PIPELINE_NAME = 'PricePrediction'
-INGESTED_DIR_NAME = 'ingested_data.csv'
+INGESTED_FILE_NAME = 'ingested_data.csv'
 
 """Constants related to data pre-processing"""
 

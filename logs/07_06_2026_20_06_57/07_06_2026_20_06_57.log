@@ -1,0 +1,25 @@
+[ 2026-07-06 20:06:59,532 ] 1025 httpx - INFO - HTTP Request: GET https://dagshub.com/api/v1/user "HTTP/1.1 200 OK"
+[ 2026-07-06 20:06:59,537 ] 107 dagshub - INFO - Accessing as CR4ZYM4D
+[ 2026-07-06 20:07:00,599 ] 1025 httpx - INFO - HTTP Request: GET https://dagshub.com/api/v1/repos/CR4ZYM4D/AmazonPricePredictor "HTTP/1.1 200 OK"
+[ 2026-07-06 20:07:01,583 ] 1025 httpx - INFO - HTTP Request: GET https://dagshub.com/api/v1/user "HTTP/1.1 200 OK"
+[ 2026-07-06 20:07:01,584 ] 107 dagshub - INFO - Initialized MLflow to track repo "CR4ZYM4D/AmazonPricePredictor"
+[ 2026-07-06 20:07:01,584 ] 107 dagshub - INFO - Repository CR4ZYM4D/AmazonPricePredictor initialized!
+[ 2026-07-06 20:07:01,685 ] 57 root - INFO - Loading model from DagsHub: models:/artifact_gradient_boost/1
+[ 2026-07-06 20:09:41,147 ] 33 root - INFO - ----- Prediction Pipeline: Starting Data Ingestion -----
+[ 2026-07-06 20:09:41,147 ] 43 root - INFO - ----- Initializing Data Ingestion Component -----
+[ 2026-07-06 20:09:41,147 ] 64 root - INFO - Attempting connecting to Database AmazonPricePredictor and extracting collection PricePredictor
+[ 2026-07-06 20:09:41,243 ] 71 root - INFO - Connection successful. Extracting collection and converting to dataframe
+[ 2026-07-06 20:09:45,044 ] 110 root - INFO - Creating Directory artifacts/_2026-07-06 20:06:57.038035/data_ingestion
+[ 2026-07-06 20:09:45,048 ] 115 root - INFO - Saved Dataframe as CSV in directory artifacts/_2026-07-06 20:06:57.038035/data_ingestion/ingested_data.csv
+[ 2026-07-06 20:09:45,048 ] 38 root - INFO - Prediction Pipeline: Data Ingestion Complete
+[ 2026-07-06 20:09:45,048 ] 47 root - INFO - ----- Prediction Pipeline: Starting Data Preprocessing -----
+[ 2026-07-06 20:09:45,048 ] 46 root - INFO - ----- Initializing Data Preprocessing Component -----
+[ 2026-07-06 20:09:45,052 ] 343 root - INFO - Available columns in preprocessing: ['Unnamed: 0', 'sample_id', 'catalog_content', 'image_link', 'uploaded_at', 'ingested']
+[ 2026-07-06 20:09:45,152 ] 32 root - INFO - Reading /home/madhav/GithubRepos/AmazonPricePredictor/schema/column_schema.yaml file
+[ 2026-07-06 20:09:45,155 ] 43 root - INFO - Successfully read the yaml file
+[ 2026-07-06 20:09:47,969 ] 325 root - INFO - Skipping plot for price as it is not present in the current DataFrame.
+[ 2026-07-06 20:09:55,396 ] 284 root - INFO - Pre-Processing Dataframe stored in directory artifacts/_2026-07-06 20:06:57.038035/data_ingestion/ingested_data.csv
+[ 2026-07-06 20:09:55,396 ] 287 root - INFO - Creating Directory artifacts/_2026-07-06 20:06:57.038035/features/preprocessing
+[ 2026-07-06 20:09:55,400 ] 293 root - INFO - Processed Dataframe and stored in directory artifacts/_2026-07-06 20:06:57.038035/features/preprocessing/preprocessed_data.csv
+[ 2026-07-06 20:09:55,400 ] 52 root - INFO - Prediction Pipeline: Data Preprocessing Complete
+[ 2026-07-06 20:09:55,403 ] 68 root - INFO - Prediction Pipeline: Loaded processed DataFrame with shape (200, 19)

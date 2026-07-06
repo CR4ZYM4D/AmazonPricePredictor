@@ -314,12 +314,15 @@ class PreProcessingComponent():
                 
                 for column in columns:
                     
-                    fig,ax = plt.subplots() 
-                    sns.histplot(df[column], kde = False, ax = ax)
-                    ax.set_title(f"Distirbution of column {column}")
+                    if column in df.columns:
+                        fig, ax = plt.subplots() 
+                        sns.histplot(df[column], kde = False, ax = ax)
+                        ax.set_title(f"Distirbution of column {column}")
 
-                    mlflow.log_figure(fig, f"column_plots/{column}.png")
-
+                        mlflow.log_figure(fig, f"column_plots/{column}.png")
+                        plt.close(fig) 
+                    else:
+                        logging.info(f"Skipping plot for {column} as it is not present in the current DataFrame.")
 
         except Exception as e:
             raise ProjectError(e, sys) 
@@ -337,6 +340,7 @@ class PreProcessingComponent():
 
             # read ingested dataframe
             df: pd.DataFrame = pd.read_csv(self.ingested_data_path)
+            logging.info(f"Available columns in preprocessing: {df.columns.tolist()}")
 
             #apply basic preprocessing
             df['catalog_content'] = df['catalog_content'].apply(self.basic_processing)
