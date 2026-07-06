@@ -452,7 +452,7 @@
       <button class="btn btn-primary" id="insert-btn" onclick="insertSingle()">
         <span class="ico">⬆</span>
         <div class="spin"></div>
-        INSERT INTO MONGODB
+        PREDICT THE PRICE
       </button>
       <button class="btn btn-muted" onclick="clearForm()">
         <span class="ico">✕</span>
@@ -615,9 +615,22 @@ async function insertSingle() {
       })
     });
     const json = await res.json();
-    if (res.ok) { toast(`✓ Inserted — _id: ${json.inserted_id}`, 'success'); clearForm(); }
-    else        { toast(`Error: ${json.detail || 'Insert failed'}`, 'error'); }
-  } catch (e) { toast(`Network error: ${e.message}`, 'error'); }
+    if (res.ok) { 
+      // Display the predicted price in a success toast notification
+      toast(`✓ Inserted! Predicted Price: $${json.predicted_price.toFixed(2)}`, 'success'); 
+      
+      // Dynamically push the newly predicted item to the results preview table
+      if (json.records && json.records.length) {
+        renderTable(json.records);
+      }
+      clearForm(); 
+    }
+    else { 
+      toast(`Error: ${json.detail || 'Insert failed'}`, 'error'); 
+    }
+  } catch (e) { 
+    toast(`Network error: ${e.message}`, 'error'); 
+  }
   setLoading('insert-btn', false);
 }
 

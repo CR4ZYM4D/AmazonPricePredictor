@@ -106,13 +106,33 @@ async def upload_csv(file: UploadFile = File(...)):
 
 @app.post("/upload", tags=["data"])
 async def upload_product(data: ProductInput = Body(...)):
-    """Receives JSON from the HTML form, writes to MongoDB Atlas."""
+    """Receives JSON from the HTML form, writes to MongoDB, and returns an immediate price prediction."""
     try:
+        # 1. Insert the record into MongoDB as un-ingested data
         document = data.dict()
         document["uploaded_at"] = datetime.datetime.utcnow()
         document["ingested"]    = False
         result = collection.insert_one(document)
-        return {"status": "success", "inserted_id": str(result.inserted_id)}
+        
+        # 2. Run the prediction pipeline to process this new single record
+        pipeline = PredictionPipeline()
+        df = pipeline.get_processed_dataframe()
+
+        # 3. Predict the price using your loaded model
+        y_pred = loaded_model.predict(df)
+        df[TARGET_COLUMN] = y_pred
+        
+        # 4. Extract the specific predicted price for this item's sample_id
+        matched_row = df[df['sample_id'] == data.sample_id]
+        predicted_price = float(matched_row[TARGET_COLUMN].values[0]) if not matched_row.empty else 0.0
+
+        # 5. Return the single prediction alongside all active batch records for the table display
+        return {
+            "status": "success", 
+            "inserted_id": str(result.inserted_id),
+            "predicted_price": predicted_price,
+            "records": df[['sample_id', TARGET_COLUMN]].to_dict(orient="records")
+        }
     except Exception as e:
         logging.error(e)
         raise ProjectError(e, sys)
