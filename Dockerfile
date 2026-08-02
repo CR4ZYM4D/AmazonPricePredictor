@@ -1,5 +1,5 @@
 # base image
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 # prevent from buffering logs
 ENV PYTHONDONTWRITEBYTECODE=1 \

@@ -7,6 +7,7 @@ import os
 import sys
 import numpy as np
 import mlflow
+from dotenv import load_dotenv
 
 # artifact and config entity imports
 from entity.config_entity import ModelTrainerConfig
@@ -26,7 +27,9 @@ from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, Rando
 
 # dagshub import
 import dagshub
-dagshub.init(repo_owner='CR4ZYM4D', repo_name='AmazonPricePredictor', mlflow=True)
+
+load_dotenv()
+dagshub.init(repo_owner='CR4ZYM4D', repo_name='AmazonPricePredictor', mlflow=True, token = os.getenv("DAGSHUB_TOKEN"))
 
 class ModelTrainer():
 
