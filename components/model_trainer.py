@@ -29,7 +29,12 @@ from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, Rando
 import dagshub
 
 load_dotenv()
-dagshub.init(repo_owner='CR4ZYM4D', repo_name='AmazonPricePredictor', mlflow=True, token = os.getenv("DAGSHUB_TOKEN"))
+
+token = os.getenv("DAGSHUB_TOKEN")
+if token:
+    dagshub.auth.add_app_token(token)
+
+dagshub.init(repo_owner='CR4ZYM4D', repo_name='AmazonPricePredictor', mlflow=True)
 
 class ModelTrainer():
 
