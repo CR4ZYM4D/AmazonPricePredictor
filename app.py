@@ -19,7 +19,7 @@ from pipeline.training_pipeline import TrainingPipeline
 from pipeline.prediction_pipeline import PredictionPipeline
 from schema.product_input import ProductInput
 
-from fastapi import FastAPI, File, UploadFile, Request, Body
+from fastapi import FastAPI, File, UploadFile, Request, Body, Depends, HTTPException
 from jinja2 import Environment, FileSystemLoader
 from starlette.templating import Jinja2Templates
 from fastapi.responses import Response
@@ -59,6 +59,36 @@ loaded_model = mlflow.pyfunc.load_model(f"models:/{ARTIFACT_PATH}/{MODEL_VERSION
 
 # init fast API app
 app = FastAPI()
+
+ALLOWED_ADMIN_IP = os.getenv("ALLOWED_ADMIN_IP")
+
+async def verify_admin_ip(request: Request):
+    """
+    Security dependency to ensure only the administrator's IP 
+    can trigger heavy compute or data pipelines.
+    """
+    # 1. Post-deployment, apps sit behind proxies (Nginx, Render, AWS ALB).
+    # We must look at 'X-Forwarded-For' to get real IP, not the proxy's IP.
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    else:
+        client_ip = request.client.host
+        
+    # Safety check: If the env variable isn't set, block access entirely
+    if not ALLOWED_ADMIN_IP:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Admin IP validation is unconfigured on the server."
+        )
+        
+    # 3. Compare client IP with your whitelisted IP
+    if client_ip != ALLOWED_ADMIN_IP:
+        logging.warning(f"Unauthorized pipeline execution attempt blocked from IP: {client_ip}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Forbidden: You do not have permission to run this pipeline."
+        )
 
 templates = Jinja2Templates(env=Environment(loader=FileSystemLoader(".")))
 
@@ -115,7 +145,7 @@ async def upload_product(data: ProductInput = Body(...)):
         result = collection.insert_one(document)
         
         # 2. Run the prediction pipeline to process this new single record
-        pipeline = PredictionPipeline()
+        pipeline = PredictionPipeline(mongodb_client= client)
         df = pipeline.get_processed_dataframe()
 
         # 3. Predict the price using your loaded model
@@ -138,12 +168,12 @@ async def upload_product(data: ProductInput = Body(...)):
         raise ProjectError(e, sys)
 
 
-@app.get("/ingest", tags=["pipeline"])
+@app.get("/ingest", tags=["pipeline"], dependencies=[Depends(verify_admin_ip)])
 async def ingest_route():
     """Pulls un-ingested Atlas documents through the DataIngestion component."""
     try:
         config    = IngestionConfig()
-        ingestion = IngestionComponent(ingestion_config=config)
+        ingestion = IngestionComponent(ingestion_config=config, mongo_client= client)
         artifact  = ingestion.initiate_data_ingestion()
         return {
             "status":     "ingestion complete",
@@ -154,22 +184,10 @@ async def ingest_route():
         logging.error(e)
         raise ProjectError(e, sys)
 
-
-# @app.post("/predict", tags=["inference"])
-# async def predict(req: Request, file: UploadFile = File(...)):
-#     try:
-#         df    = pd.read_csv(file.file)
-#         y_pred = loaded_model.predict(df)
-#         df[TARGET_COLUMN] = y_pred
-#         return Response(df.to_json(orient="records"), media_type="application/json")
-#     except Exception as e:
-#         logging.error(e)
-#         raise ProjectError(e, sys)
-
 @app.post("/predict", tags=["prediction"])
 async def predict(request: Request):
     try:
-        pipeline = PredictionPipeline()
+        pipeline = PredictionPipeline(mongodb_client= client)
         df = pipeline.get_processed_dataframe()
 
         y_pred = loaded_model.predict(df)
@@ -182,10 +200,10 @@ async def predict(request: Request):
         raise ProjectError(e, sys)
 
 
-@app.get("/train", tags=["pipeline"])
+@app.get("/train", tags=["pipeline"], dependencies=[Depends(verify_admin_ip)])
 async def train_route():
     try:
-        pipeline = TrainingPipeline()
+        pipeline = TrainingPipeline(mongodb_client= client)
         pipeline.initiate_pipeline()
         return Response("Training completed successfully")
     except Exception as e:

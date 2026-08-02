@@ -24,11 +24,11 @@ class TrainingPipeline():
     
     """
 
-    def __init__(self):
+    def __init__(self, mongodb_client = None):
 
         try: 
             self.config: TrainingPipelineConfig = TrainingPipelineConfig()
-
+            self.mongo_client = mongodb_client
         except Exception as e:
             raise ProjectError(e, sys)
         
@@ -38,7 +38,7 @@ class TrainingPipeline():
             self.ingestion_config: IngestionConfig = IngestionConfig(self.config)
             logging.info("----- Starting Data Ingestion -----")
 
-            ingestion_component = IngestionComponent(self.ingestion_config)
+            ingestion_component = IngestionComponent(self.ingestion_config, self.mongo_client)
             ingestion_artifact = ingestion_component.initiate_ingestion()
 
             logging.info("Data Ingestion Complete")

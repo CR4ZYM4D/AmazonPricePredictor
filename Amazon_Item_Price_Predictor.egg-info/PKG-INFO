@@ -18,6 +18,8 @@ Requires-Dist: nltk
 Requires-Dist: emoji
 Requires-Dist: fastapi
 Requires-Dist: uvicorn
+Requires-Dist: dagshub
+Requires-Dist: python-multipart
 Dynamic: author
 Dynamic: author-email
 Dynamic: license-file

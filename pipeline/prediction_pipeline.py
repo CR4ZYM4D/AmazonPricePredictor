@@ -21,9 +21,10 @@ class PredictionPipeline():
     Same as TrainingPipeline structure but skips Validation, Transformation and Training.
     """
 
-    def __init__(self):
+    def __init__(self, mongodb_client = None):
         try:
             self.config = TrainingPipelineConfig()
+            self.mongo_client = mongodb_client
         except Exception as e:
             raise ProjectError(e, sys)
 
@@ -32,7 +33,7 @@ class PredictionPipeline():
             ingestion_config    = IngestionConfig(self.config)
             logging.info("----- Prediction Pipeline: Starting Data Ingestion -----")
 
-            ingestion_component = IngestionComponent(ingestion_config)
+            ingestion_component = IngestionComponent(ingestion_config, self.mongo_client)
             ingestion_artifact  = ingestion_component.initiate_ingestion()
 
             logging.info("Prediction Pipeline: Data Ingestion Complete")

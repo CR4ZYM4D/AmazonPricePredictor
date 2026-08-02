@@ -12,3 +12,5 @@ nltk
 emoji
 fastapi
 uvicorn
+dagshub
+python-multipart

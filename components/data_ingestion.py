@@ -33,13 +33,17 @@ class IngestionComponent():
         along with DB and collection anme and split ratio for train/test files
     """
 
-    def __init__(self, ingestion_config: IngestionConfig = IngestionConfig()):
+    def __init__(self, ingestion_config: IngestionConfig = IngestionConfig(), mongo_client = None):
         
         try:
             
             self.config = ingestion_config
             self.directory_path = self.config.ingestion_dir
             self.ingested_file_path = os.path.join(self.directory_path, INGESTED_FILE_NAME)
+            if mongo_client:
+                self.mongo_client = mongo_client
+            else:
+                logging.error("MONGO CLIENT NOT FOUND!!")
             logging.info("----- Initializing Data Ingestion Component -----")
 
         except Exception as e:
@@ -62,8 +66,7 @@ class IngestionComponent():
 
             # connect to DB using DB URL
             logging.info(f"Attempting connecting to Database {db_name} and extracting collection {collection_name}")
-            self.mongo_client = pymongo.MongoClient(MONGO_DB_URL, tls=True, tlsCAFile=certifi.where())
-
+            
             # get collection from DB
             collection = self.mongo_client[db_name][collection_name]
 
