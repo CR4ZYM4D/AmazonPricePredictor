@@ -1,8 +1,22 @@
-FROM python:3.10-slim-buster
+# base image
+FROM python:3.12-slim-bookworm
+
+# prevent from buffering logs
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
-COPY . /app
 
-RUN apt update -y && apt install awscli -y
+# copy only requirements first for caching
+COPY requirements.txt .
 
-RUN apt-get update && pip install -r requirements.txt
-CMD ["python3", "app.py"]
+#  dependencies and awscli 
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+COPY . .
+
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
