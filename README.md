@@ -21,6 +21,59 @@
 
 ---
 
+## Live Demo
+
+The API is deployed and live on AWS EC2.
+
+- **Base URL:** `http://13.200.114.233:8000`
+- **Interactive docs (Swagger UI):** [`/docs`](http://13.200.114.233:8000/docs)
+- **Metrics (Prometheus format):** [`/metrics`](http://13.200.114.233:8000/metrics)
+
+> `/train` and `/ingest` are restricted to an admin IP allowlist and will return `403 Forbidden` for external requests — this is intentional access control, not a bug. `/predict` is open for demo use.
+
+```bash
+curl -X GET "http://13.200.114.233:8000/predict" \
+  -F "file=@products.csv"
+```
+
+---
+
+## ☁️ Deployment & Infrastructure
+
+This project isn't just deployed — it's deployed with the same practices used in production ML systems: automated builds, runtime secret injection, access-controlled admin routes, and live observability.
+
+| Layer | Details |
+|---|---|
+| **Compute** | AWS EC2, `t2.small`, Ubuntu Server 24.04 LTS |
+| **Networking** | Static **Elastic IP** (survives instance stop/start) |
+| **Containerization** | Docker — image built from the project `Dockerfile` |
+| **CI/CD** | GitHub Actions — on every push to `main`, the image is automatically built and pushed to DockerHub (`cr4zym4d/amazon-price-predictor:latest`) |
+| **Secrets management** | All credentials (MongoDB URI, DagsHub token, admin IP allowlist) live in a `.env` file on the instance, injected at container runtime via `--env-file` — **never baked into the Docker image or committed to version control** |
+| **Access control** | Security group restricts SSH to a single admin IP; `/train` and `/ingest` are additionally gated at the application layer via IP allowlisting, independent of network-level firewall rules |
+| **Observability** | **Prometheus** scrapes `/metrics` for request/latency metrics; **Loki + Promtail** ship container logs for centralized search; **Grafana** provides dashboards for both — all running alongside the app via Docker Compose |
+
+### Deployment flow
+
+```
+git push origin main
+       │
+       ▼
+GitHub Actions (build + push image)
+       │
+       ▼
+   DockerHub (cr4zym4d/amazon-price-predictor:latest)
+       │
+       ▼
+SSH into EC2 → docker pull → container restart
+       │
+       ▼
+  Live at http://<Elastic-IP>:8000
+```
+
+New image versions are pulled and deployed via a `redeploy.sh` script on the instance, which handles pulling the latest image and swapping the running container with zero manual `docker run` bookkeeping.
+
+---
+
 ## About the Project
 
 The **Amazon Item Price Predictor** is not just a model — it's a complete **ML system** engineered from the ground up. It covers the full lifecycle: raw data ingestion from MongoDB, automated feature engineering, model training with experiment tracking via MLflow & DagsHub, and live inference through a FastAPI REST endpoint — all containerized with Docker for repeatable deployment.
