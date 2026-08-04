@@ -18,3 +18,4 @@ scikit-learn==1.8.0
 seaborn==0.13.2
 uvicorn==0.44.0
 pymongo[srv]==3.12.0
+prometheus-fastapi-instrumentator==8.1.0

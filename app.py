@@ -24,7 +24,8 @@ from jinja2 import Environment, FileSystemLoader
 from starlette.templating import Jinja2Templates
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import RedirectResponse  
+from starlette.responses import RedirectResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 from uvicorn import run
 
 from constants.training_pipeline import COLLECTION_NAME, DB_NAME, TARGET_COLUMN
@@ -59,6 +60,8 @@ loaded_model = mlflow.pyfunc.load_model(f"models:/{ARTIFACT_PATH}/{MODEL_VERSION
 
 # init fast API app
 app = FastAPI()
+
+Instrumentator().instrument(app).expose(app)
 
 ALLOWED_ADMIN_IP = os.getenv("ALLOWED_ADMIN_IP")
 TRUST_PROXY = os.getenv("TRUST_PROXY", "false").lower() == "true"
