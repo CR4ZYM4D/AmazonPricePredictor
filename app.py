@@ -19,7 +19,7 @@ from pipeline.training_pipeline import TrainingPipeline
 from pipeline.prediction_pipeline import PredictionPipeline
 from schema.product_input import ProductInput
 
-from fastapi import FastAPI, File, UploadFile, Request, Body, Depends, HTTPException
+from fastapi import FastAPI, File, UploadFile, Request, Body, Depends, HTTPException, status
 from jinja2 import Environment, FileSystemLoader
 from starlette.templating import Jinja2Templates
 from fastapi.responses import Response
@@ -61,32 +61,30 @@ loaded_model = mlflow.pyfunc.load_model(f"models:/{ARTIFACT_PATH}/{MODEL_VERSION
 app = FastAPI()
 
 ALLOWED_ADMIN_IP = os.getenv("ALLOWED_ADMIN_IP")
+TRUST_PROXY = os.getenv("TRUST_PROXY", "false").lower() == "true"
 
 async def verify_admin_ip(request: Request):
     """
-    Security dependency to ensure only the administrator's IP 
+    Security dependency to ensure only the administrator's IP
     can trigger heavy compute or data pipelines.
     """
-    # 1. Post-deployment, apps sit behind proxies (Nginx, Render, AWS ALB).
-    # We must look at 'X-Forwarded-For' to get real IP, not the proxy's IP.
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
+    if TRUST_PROXY:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else request.client.host
     else:
+        # No trusted proxy in front — request.client.host is the real client IP
         client_ip = request.client.host
-        
-    # Safety check: If the env variable isn't set, block access entirely
+
     if not ALLOWED_ADMIN_IP:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin IP validation is unconfigured on the server."
         )
-        
-    # 3. Compare client IP with your whitelisted IP
+
     if client_ip != ALLOWED_ADMIN_IP:
         logging.warning(f"Unauthorized pipeline execution attempt blocked from IP: {client_ip}")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: You do not have permission to run this pipeline."
         )
 
